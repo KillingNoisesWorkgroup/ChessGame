@@ -1,16 +1,16 @@
 all: shared server client
 
 server:
-	make --directory=src/server
+	make --directory=server
 	
 client:
-	make --directory=src/client
+	make --directory=client
 	
 shared:
-	make --directory=src/shared
+	make --directory=shared
 
 clean:
-	make clean --directory=src/server
-	make clean --directory=src/client
-	make clean --directory=src/shared
-	rm -rf *exe
+	make clean --directory=server
+	make clean --directory=client
+	make clean --directory=shared
+	rm -rf *.exe
