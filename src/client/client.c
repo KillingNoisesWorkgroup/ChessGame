@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <pthread.h>
+#include <openssl/md5.h>
 
 #include "../shared/shared.h"
 #include "../shared/networking.h"
@@ -22,7 +23,7 @@ typedef struct session_rec {
 	server_rec server;
 
 	char login[PLAYER_NAME_MAXSIZE];
-	char password_encrypted[ENCRYPTED_PASSWORD_LENGTH];
+	unsigned char password_encrypted[ENCRYPTED_PASSWORD_LENGTH];
 	
 	int socket;
 } session_rec;
@@ -214,7 +215,7 @@ int main(int args, unsigned char **argv) {
 	strncpy((char*)&session.login, argv[3], PLAYER_NAME_MAXSIZE-1);
 	session.login[PLAYER_NAME_MAXSIZE-1] = '\0';
 	
-	MD5(argv[4], strlen(argv[4]), &session.password_encrypted);
+	MD5(argv[4], strlen(argv[4]), (unsigned char*)&session.password_encrypted);
 	
 	printf("Connecting...\n");
 	
