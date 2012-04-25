@@ -168,7 +168,10 @@ void input_thread_remote(void *arg) {
 		
 		// Do all the stuff in here
 		
-		pthread_mutex_unlock(&reactor.locking_mutex);		
+		pthread_mutex_unlock(&reactor.locking_mutex);
+
+		// No leaks here! :)
+		free(data);
 	}
 }
 
