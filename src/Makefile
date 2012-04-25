@@ -1,4 +1,6 @@
-all: shared server client
+all:
+	make --directory=server
+	make --directory=client
 
 server:
 	make --directory=server
