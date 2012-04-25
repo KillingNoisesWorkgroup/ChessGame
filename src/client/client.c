@@ -158,9 +158,9 @@ void input_thread_remote(void *arg) {
 	packet_length_t length;
 	void *data;
 	
-	while(1) {
+	while(1) {		
 		// Read from socket with blocking
-		if(!packet_recv(session.socket, &packet_type, &length, data)) { // Disconnected
+		if(!packet_recv(session.socket, &packet_type, &length, &data)) { // Disconnected
 			fprintf(stderr, "Disconnected from server!\n");
 			exit(3);
 		}		
@@ -168,6 +168,7 @@ void input_thread_remote(void *arg) {
 		pthread_mutex_lock(&reactor.locking_mutex);
 		
 		// Do all the stuff in here
+		printf("Remote input got packet!\n");
 		
 		pthread_mutex_unlock(&reactor.locking_mutex);
 
@@ -200,7 +201,7 @@ int main(int args, unsigned char **argv) {
 	int forkpid;
 
 	if(args != 5) {
-		printf("Usage: %s host post login password\n", argv[0]);
+		printf("Usage: %s host port login password\n", argv[0]);
 		printf("Connects to chess server.\n");
 		exit(EXIT_SUCCESS);
 	}
@@ -232,6 +233,8 @@ int main(int args, unsigned char **argv) {
 		fprintf(stderr, "Unable to create thread!\n");
 		exit(EXIT_FAILURE);
 	}
+	
+	printf("Working!\n");
 	
 	pthread_join(reactor.thread_input_local, NULL);
 	pthread_join(reactor.thread_input_remote, NULL);
