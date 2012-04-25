@@ -8,32 +8,34 @@
 
 #include "networking.h"
 
-void packet_send(int dst, int packet_type, int length, void *raw_data){
-	char* data;
-	if( (data = malloc(length + 2*sizeof(int))) == NULL ){
+void packet_send(int dst, packet_type_t packet_type, packet_length_t length, void *raw_data){
+	char *data;
+	char *p; // just a helper pointer
+	
+	if((data = malloc(sizeof(packet_type) + sizeof(length) + length)) == NULL){
 		perror("malloc");
 		exit(1);
 	}
-	((int*)data)[0] = packet_type;
-	((int*)data)[1] = length;
-	memcpy(&(((int*)data)[2]), raw_data, length);
-	if( (send(dst, data, length + 2*sizeof(int), 0) == -1 ) ){
+	p = data;
+	
+	*(packet_type_t*)p = packet_type;
+	p += sizeof(packet_type);
+	
+	*(packet_length_t*)p = length;
+	p += sizeof(length);
+	
+	memcpy(p, raw_data, length);
+	
+	if((send(dst, data, sizeof(packet_type) + sizeof(length) + length, 0) == -1)){
 		perror("send");
 		exit(1);
 	}
+	
 	free(data);
 }
 
-int packet_recv(int src, int *packet_type, int *length, void **data){
-	if( (length = malloc(sizeof(int))) == NULL ){
-		perror("malloc");
-		exit(1);
-	}
-	if( (packet_type = malloc(sizeof(int))) == NULL ){
-		perror("malloc");
-		exit(1);
-	}
-	if((recv(src, packet_type, sizeof(int), MSG_WAITALL)) == -1) {
+int packet_recv(int src, packet_type_t *packet_type, packet_length_t *length, void **data){
+	if((recv(src, packet_type, sizeof(packet_type_t), MSG_WAITALL)) == -1) {
 		if(errno == ECONNREFUSED) {
 			return 0;
 		} else {
@@ -41,7 +43,8 @@ int packet_recv(int src, int *packet_type, int *length, void **data){
 			exit(1);
 		}
 	}
-	if((recv(src, length, sizeof(int), MSG_WAITALL)) == -1) {
+	
+	if((recv(src, length, sizeof(packet_length_t), MSG_WAITALL)) == -1) {
 		if(errno == ECONNREFUSED) {
 			return 0;
 		} else {
@@ -49,14 +52,20 @@ int packet_recv(int src, int *packet_type, int *length, void **data){
 			exit(1);
 		}
 	}
-	if( (*data = malloc(*length)) == NULL){
+	
+	if((*data = malloc(*length)) == NULL){
 		perror("malloc");
 		exit(1);
 	}
-	if( (recv(src, *data, *length, 0)) == -1 ) {
-		perror("recv");
-		exit(1);
-	}
+	
+	if((recv(src, *data, *length, MSG_WAITALL)) == -1) {
+		if(errno == ECONNREFUSED) {
+			return 0;
+		} else {
+			perror("recv");
+			exit(1);
+		}
+	}	
 	return 1;
 }
 

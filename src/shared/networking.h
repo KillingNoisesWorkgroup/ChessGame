@@ -1,19 +1,24 @@
 #ifndef H_SERVER_NETWORKING_GUARD
 #define H_SERVER_NETWORKING_GUARD
 
-/* PACKET C2S - Auth Request */
+#include <stdint.h>
 
-#define PLAYER_NAME_MAXSIZE 256
-#define ENCRYPTED_PASSWORD_LENGTH 32
+// Turn on packing mode of the compiler
+#pragma pack(push, 1)
 
-#define PACKET_AUTH_REQUEST 1
-typedef struct packet_auth_request{
-	char login[PLAYER_NAME_MAXSIZE];
-	char passw[ENCRYPTED_PASSWORD_LENGTH];
-} packet_auth_request;
+// Including packets with packing...
+#include "packets.h"
 
-void packet_send(int dst, int packet_type, int length, void *raw_data);
-int packet_recv(int src, int *packet_type, int *length, void **data);
+// Turn off packing mode of the compiler
+#pragma pack(pop)
+
+
+typedef uint8_t packet_type_t;
+typedef uint16_t packet_length_t;
+
+// Network functions wrappers
+void packet_send(int dst, packet_type_t packet_type, packet_length_t length, void *raw_data);
+int packet_recv(int src, packet_type_t *packet_type, packet_length_t *length, void **data);
 
 #endif
 

@@ -153,8 +153,8 @@ void authenticate() {
 
 
 void input_thread_remote(void *arg) {
-	int packet_type;
-	int length;
+	packet_type_t packet_type;
+	packet_length_t length;
 	void *data;
 	
 	while(1) {
@@ -188,6 +188,7 @@ void input_thread_local(void *arg) {
 
 // Should terminate all threads
 void terminate() {
+	// This will terminate all threads for sure...
 	exit(EXIT_SUCCESS);
 }
 

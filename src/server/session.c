@@ -14,16 +14,20 @@ void authentication(packet_auth_request *packet){
 }
 
 void* Session(void *arg){
-	int *packet_type, *length, session_id;
+	packet_type_t packet_type;
+	packet_length_t length;
+	int session_id;
 	void *data;
+	
 	printf("Trololo, i'm a thread, and this is jackass\n");
 	session_id = *(int*)arg;
+	
 	while(1){
-		packet_recv(session_id, packet_type, length, &data);
-		switch(*packet_type){
-		case PACKET_AUTH_REQUEST:
-			authentication(data);
-			break;
+		packet_recv(session_id, &packet_type, &length, &data);
+		switch(packet_type){
+			case PACKET_AUTH_REQUEST:
+				authentication(data);
+				break;
 		}
 	}
 }

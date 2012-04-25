@@ -44,6 +44,8 @@ int main(int argc, char **args){
 	
 	listen(server_socket, CONNECTION_REQUEST_QUEUE_BACKLOG_SIZE);
 	
+	printf("Listening on 0.0.0.0:%d\n", PORT);
+	
 	while(1){
 		client_socket = accept(server_socket, &client_addres, &client_socklen);
 		create_session(client_socket, &client_addres);
