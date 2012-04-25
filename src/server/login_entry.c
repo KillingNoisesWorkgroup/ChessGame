@@ -37,18 +37,13 @@ login_entry* login_entry_find(char* login){
 }
 
 void read_passwords(){
-	FILE* file;
 	int id;
 	login_entry *login;
-	if( (file = fopen("passwd", "r")) == NULL){
-		perror("fopen");
-		exit(1);
-	}
-	while(!feof(file)){
-		fscanf(file, "%d", &id);
+	while(!feof(passwd)){
+		fscanf(passwd, "%d", &id);
 		login = init_login_entry(id);
-		fscanf(file, "%s", login->login);
-		fscanf(file, "%s", login->passw);
+		fscanf(passwd, "%s", login->login);
+		fscanf(passwd, "%s", login->passw);
 		dynamic_array_add(current_lobby.logins, login);
 	}
 }
@@ -61,5 +56,11 @@ void print_passwords(){
 		printf("id: %d, login: %s, passw: %s\n", login->id, login->login, login->passw);
 		fflush(stdout);
 	}
+}
+
+void create_password(int id, char* login, char* passw){
+	fprintf(passwd, "\n%d ", id);
+	fprintf(passwd, "%s ", login);
+	fprintf(passwd, "%s", passw);
 }
 

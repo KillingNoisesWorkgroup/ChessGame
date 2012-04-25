@@ -1,6 +1,8 @@
 #ifndef H_SERVER_LOGIN_ENTRY_GUARD
 #define H_SERVER_LOGIN_ENTRY_GUARD
 
+#include <stdio.h>
+
 #include "dynamic_array.h"
 
 typedef struct login_entry{
@@ -9,8 +11,13 @@ typedef struct login_entry{
 	int id;
 } login_entry;
 
+FILE* passwd;
+
 login_entry* init_login_entry(int id);
 login_entry* login_entry_find(char* login);
+void read_passwords();
+void print_passwords();
+void create_password(int id, char *login, char * passw);
 
 #endif
 
