@@ -45,6 +45,9 @@ void* Session(void *arg){
 	
 	while(1){
 		packet_recv(current_session->client_socket, &packet_type, &length, &data);
+		
+		packet_debug(packet_type, length, data);
+		
 		switch(packet_type){
 			case PACKET_AUTH_REQUEST:
 				authentication(current_session->client_socket, data);

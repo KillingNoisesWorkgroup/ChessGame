@@ -126,12 +126,12 @@ void user_communications(void) {
 void connect_to_server() {
 	struct sockaddr_in address;
 
-	if((session.socket = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
+	if((session.socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 		perror("socket");
 		exit(EXIT_FAILURE);
 	}
 	
-	bzero((char *) &address, sizeof(address));
+	bzero((char *)&address, sizeof(address));
 	address.sin_family = AF_INET;
 	address.sin_port = htons(session.server.port);
     bcopy((char *)session.server.host->h_addr, (char *)&address.sin_addr.s_addr, session.server.host->h_length);
@@ -146,10 +146,19 @@ void connect_to_server() {
 void authenticate() {
 	packet_auth_request packet;
 	strncpy(packet.login, session.login, PLAYER_NAME_MAXSIZE);
-	strncpy(packet.passw, session.password_encrypted, ENCRYPTED_PASSWORD_LENGTH);
+	memcpy(packet.passw, session.password_encrypted, ENCRYPTED_PASSWORD_LENGTH);
 	
 	packet_send(session.socket, PACKET_AUTH_REQUEST, sizeof(packet), &packet);
-	// Lol, is that all?
+	packet_debug(PACKET_AUTH_REQUEST, sizeof(packet), &packet);
+	
+	packet_type_t ptype;
+	packet_length_t plen;
+	unsigned char *payload;
+	
+	packet_recv(session.socket, &ptype, &plen, &payload);
+	packet_debug(ptype, plen, payload);
+	
+	exit(0);
 }
 
 
@@ -158,7 +167,7 @@ void input_thread_remote(void *arg) {
 	packet_length_t length;
 	void *data;
 	
-	while(1) {		
+	while(1) {
 		// Read from socket with blocking
 		if(!packet_recv(session.socket, &packet_type, &length, &data)) { // Disconnected
 			fprintf(stderr, "Disconnected from server!\n");
@@ -169,6 +178,7 @@ void input_thread_remote(void *arg) {
 		
 		// Do all the stuff in here
 		printf("Remote input got packet!\n");
+		printf("Packet: %d, %d\n", packet_type, length);
 		
 		pthread_mutex_unlock(&reactor.locking_mutex);
 
