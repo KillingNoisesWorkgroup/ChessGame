@@ -144,8 +144,8 @@ void connect_to_server() {
 // Blocks the whole thing untill auth
 void authenticate() {
 	packet_auth_request packet;
-	strncpy(&packet.login, session.login, PLAYER_NAME_MAXSIZE);
-	strncpy(&packet.passw, session.password_encrypted, ENCRYPTED_PASSWORD_LENGTH);
+	strncpy(packet.login, session.login, PLAYER_NAME_MAXSIZE);
+	strncpy(packet.passw, session.password_encrypted, ENCRYPTED_PASSWORD_LENGTH);
 	
 	packet_send(session.socket, PACKET_AUTH_REQUEST, sizeof(packet), &packet);
 	// Lol, is that all?
@@ -159,9 +159,9 @@ void input_thread_remote(void *arg) {
 	
 	while(1) {
 		// Read from socket with blocking
-		if(!packet_recv(session.socket, packet_type, length, data)) { // Disconnected
-			fprintf("Disconnected from server!\n");
-			exit(EXIT_FAILURE);
+		if(!packet_recv(session.socket, &packet_type, &length, data)) { // Disconnected
+			fprintf(stderr, "Disconnected from server!\n");
+			exit(3);
 		}		
 		
 		pthread_mutex_lock(&reactor.locking_mutex);
@@ -228,8 +228,8 @@ int main(int args, unsigned char **argv) {
 		exit(EXIT_FAILURE);
 	}
 	
-	pthread_join(&reactor.thread_input_local);
-	pthread_join(&reactor.thread_input_remote);
+	pthread_join(reactor.thread_input_local, NULL);
+	pthread_join(reactor.thread_input_remote, NULL);
 	
 	return EXIT_SUCCESS;
 }

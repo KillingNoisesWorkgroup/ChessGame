@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <errno.h>
+#include <stdint.h>
 
 #include "networking.h"
 
@@ -22,7 +24,7 @@ void packet_send(int dst, int packet_type, int length, void *raw_data){
 	free(data);
 }
 
-void packet_recv(int src, int *packet_type, int *length, void **data){
+int packet_recv(int src, int *packet_type, int *length, void **data){
 	if( (length = malloc(sizeof(int))) == NULL ){
 		perror("malloc");
 		exit(1);
@@ -31,13 +33,21 @@ void packet_recv(int src, int *packet_type, int *length, void **data){
 		perror("malloc");
 		exit(1);
 	}
-	if( (recv(src, packet_type, sizeof(int), 0)) == -1 ) {
-		perror("recv");
-		exit(1);
+	if((recv(src, packet_type, sizeof(int), MSG_WAITALL)) == -1) {
+		if(errno == ECONNREFUSED) {
+			return 0;
+		} else {
+			perror("recv");
+			exit(1);
+		}
 	}
-	if( (recv(src, length, sizeof(int), 0)) == -1 ) {
-		perror("recv");
-		exit(1);
+	if((recv(src, length, sizeof(int), MSG_WAITALL)) == -1) {
+		if(errno == ECONNREFUSED) {
+			return 0;
+		} else {
+			perror("recv");
+			exit(1);
+		}
 	}
 	if( (*data = malloc(*length)) == NULL){
 		perror("malloc");
@@ -47,5 +57,6 @@ void packet_recv(int src, int *packet_type, int *length, void **data){
 		perror("recv");
 		exit(1);
 	}
+	return 1;
 }
 

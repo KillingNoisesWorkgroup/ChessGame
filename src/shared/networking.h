@@ -13,7 +13,7 @@ typedef struct packet_auth_request{
 } packet_auth_request;
 
 void packet_send(int dst, int packet_type, int length, void *raw_data);
-void packet_recv(int src, int *packet_type, int *length, void **data);
+int packet_recv(int src, int *packet_type, int *length, void **data);
 
 #endif
 
