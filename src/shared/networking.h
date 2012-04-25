@@ -2,9 +2,6 @@
 #define H_SERVER_NETWORKING_GUARD
 
 #include <stdint.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 
 // Turn on packing mode of the compiler
 #pragma pack(push, 1)
