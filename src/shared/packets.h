@@ -3,8 +3,9 @@
 
 /* PACKET C2S - Auth Request */
 
+#include <openssl/md5.h>
 #define PLAYER_NAME_MAXSIZE 256
-#define ENCRYPTED_PASSWORD_LENGTH 32
+#define ENCRYPTED_PASSWORD_LENGTH MD5_DIGEST_LENGTH
 
 #define PACKET_AUTH_REQUEST 1
 typedef struct packet_auth_request{
