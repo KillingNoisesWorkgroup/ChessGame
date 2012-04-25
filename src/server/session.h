@@ -15,7 +15,7 @@ typedef struct session{
 	int state;
 	struct sockaddr *client_addres;
 	int client_socket;
-	pthread_t *thread;
+	pthread_t thread;
 } session;
 
 void* Session(void *arg);

@@ -55,12 +55,8 @@ void* Session(void *arg){
 
 void create_session(int client_socket, struct sockaddr *client_addres){
 	session *new_session;
-	pthread_t *thread;
+	pthread_t thread;
 	if( (new_session = malloc(sizeof(session))) == NULL){
-		perror("malloc");
-		exit(1);
-	}	
-	if( (thread = malloc(sizeof(pthread_t))) == NULL){
 		perror("malloc");
 		exit(1);
 	}
@@ -71,7 +67,7 @@ void create_session(int client_socket, struct sockaddr *client_addres){
 	new_session->thread = thread;
 	
 	dynamic_array_add(current_lobby.sessions, new_session);
-	if( (pthread_create(thread, NULL, (void*)Session, (void*)new_session)) != 0){
+	if( (pthread_create(&thread, NULL, (void*)Session, (void*)new_session)) != 0){
 		perror("pthread_create");
 		exit(1);
 	}
