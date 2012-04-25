@@ -15,4 +15,3 @@ clean:
 	make clean --directory=server
 	make clean --directory=client
 	make clean --directory=shared
-	rm -rf *.exe
