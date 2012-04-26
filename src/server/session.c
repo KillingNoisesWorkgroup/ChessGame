@@ -14,14 +14,20 @@ void authentication(int client_socket, packet_auth_request *packet){
 	// last user id
 	last_id = &(((login_entry*)((current_lobby.logins)->data[current_lobby.logins->size]))->id);
 	
+	printf("ololo\n");
+	fflush(stdout);
 	if( (login = login_entry_find(packet->login)) == NULL){
 		*last_id +=1;
+		printf("ololo2\n");
+		fflush(stdout);
 		login = init_login_entry(*last_id);
-		strncpy(login->login, packet->login, PLAYER_NAME_MAXSIZE);
+		strncpy(login->login, packet->login, strlen(login->login));
 		memcpy(login->passw, packet->passw, ENCRYPTED_PASSWORD_LENGTH);
 		create_password(*last_id, packet->login, packet->passw);
 		dynamic_array_add(current_lobby.logins, login);
 	} else {
+		printf("ololo3\n");
+		fflush(stdout);
 		if( strncmp(login->passw, packet->passw, ENCRYPTED_PASSWORD_LENGTH) == 0){
 			// packet_send(client_socket, )
 		} else {

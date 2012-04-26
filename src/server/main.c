@@ -46,14 +46,19 @@ int main(int argc, char **args){
 	
 	create_lobby();
 	read_passwords();
-	//print_passwords();
+	printf("LOGINS:\n");
+	print_passwords();
 	
 	listen(server_socket, CONNECTION_REQUEST_QUEUE_BACKLOG_SIZE);
 	
 	printf("Listening on 0.0.0.0:%d\n", port);
 	
 	while(1){
-		client_socket = accept(server_socket, &client_addres, &client_socklen);
+		if( (client_socket = accept(server_socket, &client_addres, &client_socklen)) == -1){
+			perror("accept");
+			exit(1);
+		}
+		printf("client socket -> %d\n", client_socket);
 		create_session(client_socket, &client_addres);
 	}
 	return 0;
