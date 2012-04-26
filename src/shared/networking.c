@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/select.h>
 
 #include "networking.h"
 
@@ -36,22 +37,46 @@ void packet_send(int dst, packet_type_t packet_type, packet_length_t length, voi
 }
 
 int packet_recv(int src, packet_type_t *packet_type, packet_length_t *length, void **data){
+	fd_set rfds;
+	int retval;
+	
+	FD_ZERO(&rfds);
+	FD_SET(src, &rfds);
+	if ((retval = select(src + 1, &rfds, NULL, NULL, NULL)) == -1) {
+		perror("select");
+		exit(1);
+	}
+
 	if((recv(src, packet_type, sizeof(packet_type_t), MSG_WAITALL)) == -1) {
 		if(errno == ECONNREFUSED) {
 			return 0;
 		} else {
-			perror("recv");
+			perror("recv1");
 			exit(1);
 		}
+	}
+	
+	FD_ZERO(&rfds);
+	FD_SET(src, &rfds);
+	if ((retval = select(src + 1, &rfds, NULL, NULL, NULL)) == -1) {
+		perror("select");
+		exit(1);
 	}
 	
 	if((recv(src, length, sizeof(packet_length_t), MSG_WAITALL)) == -1) {
 		if(errno == ECONNREFUSED) {
 			return 0;
 		} else {
-			perror("recv");
+			perror("recv2");
 			exit(1);
 		}
+	}
+	
+	FD_ZERO(&rfds);
+	FD_SET(src, &rfds);
+	if ((retval = select(src + 1, &rfds, NULL, NULL, NULL)) == -1) {
+		perror("select");
+		exit(1);
 	}
 	
 	if((*data = malloc(*length)) == NULL){
@@ -63,10 +88,33 @@ int packet_recv(int src, packet_type_t *packet_type, packet_length_t *length, vo
 		if(errno == ECONNREFUSED) {
 			return 0;
 		} else {
-			perror("recv");
+			perror("recv3");
 			exit(1);
 		}
 	}	
 	return 1;
 }
 
+void packet_debug(packet_type_t packet_type, packet_length_t packet_length, void *data) {
+	int i;
+	printf("Packet (%d bytes, type %d): \n", packet_length, packet_type);
+	for(i = 0; i < packet_length; i++) {
+		if(i == 64) {
+			printf("...");
+			break;
+		}
+		printf("%02X ", ((unsigned char*)data)[i]);
+		if((i + 1) % 8 == 0) printf("\n");
+	}
+	printf("\n---------------\n");
+}
+
+void packet_debug_full(packet_type_t packet_type, packet_length_t packet_length, void *data) {
+	int i;
+	printf("Packet (%d bytes, type %d): \n", packet_length, packet_type);
+	for(i = 0; i < packet_length; i++) {
+		printf("%02X ", ((unsigned char*)data)[i]);
+		if((i + 1) % 8 == 0) printf("\n");
+	}
+	printf("\n---------------\n");
+}

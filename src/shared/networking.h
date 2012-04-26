@@ -19,6 +19,8 @@ typedef uint16_t packet_length_t;
 // Network functions wrappers
 void packet_send(int dst, packet_type_t packet_type, packet_length_t length, void *raw_data);
 int packet_recv(int src, packet_type_t *packet_type, packet_length_t *length, void **data);
+void packet_debug(packet_type_t packet_type, packet_length_t packet_length, void *data);
+void packet_debug_full(packet_type_t packet_type, packet_length_t packet_length, void *data);
 
 #endif
 
