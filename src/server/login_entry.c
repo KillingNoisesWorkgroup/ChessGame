@@ -27,24 +27,38 @@ login_entry* login_entry_find(char* login){
 	login_entry* log_e;
 	int i;
 	log_e = NULL;
+	printf("Searching for login %s\n", login);
+	printf("Logins array size is %d\n", current_lobby.logins->size);
+	fflush(stdout);
 	for(i = 0; i < current_lobby.logins->size; i++){
+		printf("is %d a searched login?\n", i);
+		fflush(stdout);
 		if( strcmp( ((login_entry*)(current_lobby.logins->data[i]))->login, login) == 0){
-			log_e = (login_entry*)current_lobby.logins->data[i];
+			log_e = (login_entry*)(current_lobby.logins->data[i]);
+			printf("yes, it is!\n");
+			fflush(stdout);
 			break;
 		}
+		printf("no, it isn't\n");
+		fflush(stdout);
 	}
 	return log_e;
 }
 
 void read_passwords(){
-	int id;
+	int id, read, length;
+	char* buf = NULL;
 	login_entry *login;
-	while(!feof(passwd)){
-		fscanf(passwd, "%d", &id);
-		login = init_login_entry(id);
-		fscanf(passwd, "%s", login->login);
-		fscanf(passwd, "%s", login->passw);
+	while((read = getline(&buf, &length, passwd)) != -1){
+		printf("reading password\n");
+		fflush(stdout);
+		if(read <= 0) break;
+		login = init_login_entry(0);
+		sscanf(buf, "%d %s %s", &id, login->login, login->passw);
+		login->id = id;
 		dynamic_array_add(current_lobby.logins, login);
+		free(buf);
+		buf = NULL;
 	}
 }
 
