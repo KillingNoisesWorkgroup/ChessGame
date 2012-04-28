@@ -151,14 +151,15 @@ void authenticate() {
 	packet_send(session.socket, PACKET_AUTH_REQUEST, sizeof(packet), &packet);
 	packet_debug(PACKET_AUTH_REQUEST, sizeof(packet), &packet);
 	
+	/* For auth response
 	packet_type_t ptype;
 	packet_length_t plen;
-	unsigned char *payload;
+	void *payload;
 	
 	packet_recv(session.socket, &ptype, &plen, &payload);
 	packet_debug(ptype, plen, payload);
-	
-	exit(0);
+	*/
+	//exit(0);
 }
 
 
