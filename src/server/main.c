@@ -18,7 +18,7 @@ int server_socket;
 struct sockaddr_in server_addres;
 
 int main(int argc, char **args){
-	int client_socket, port, server_reuseaddr;
+	int client_socket, port, server, server_reuseaddr;
 	struct sockaddr_in client_addres;
 	socklen_t client_socklen;
 	

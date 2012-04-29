@@ -19,6 +19,7 @@ void authentication(int client_socket, packet_auth_request *packet){
 		*last_id +=1;
 		login = init_login_entry(*last_id);
 		strncpy(login->login, packet->login, strlen(login->login));
+		
 		memcpy(login->passw, packet->passw, ENCRYPTED_PASSWORD_LENGTH);
 		login_entry_register(*last_id, packet->login, packet->passw);
 		dynamic_array_add(current_lobby.logins, login);
