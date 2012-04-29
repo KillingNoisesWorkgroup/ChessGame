@@ -40,6 +40,8 @@ int packet_recv(int src, packet_type_t *packet_type, packet_length_t *length, vo
 	fd_set rfds;
 	int retval;
 	
+	*data = NULL;
+	
 	FD_ZERO(&rfds);
 	FD_SET(src, &rfds);
 	if ((retval = select(src + 1, &rfds, NULL, NULL, NULL)) == -1) {
@@ -47,7 +49,7 @@ int packet_recv(int src, packet_type_t *packet_type, packet_length_t *length, vo
 		exit(1);
 	}
 
-	if((recv(src, packet_type, sizeof(packet_type_t), MSG_WAITALL)) == -1) {
+	if((retval = recv(src, packet_type, sizeof(packet_type_t), MSG_WAITALL)) == -1) {
 		if(errno == ECONNREFUSED) {
 			return 0;
 		} else {
@@ -55,6 +57,7 @@ int packet_recv(int src, packet_type_t *packet_type, packet_length_t *length, vo
 			exit(1);
 		}
 	}
+	if(retval == 0) return 0;
 	
 	FD_ZERO(&rfds);
 	FD_SET(src, &rfds);
@@ -63,7 +66,7 @@ int packet_recv(int src, packet_type_t *packet_type, packet_length_t *length, vo
 		exit(1);
 	}
 	
-	if((recv(src, length, sizeof(packet_length_t), MSG_WAITALL)) == -1) {
+	if((retval = recv(src, length, sizeof(packet_length_t), MSG_WAITALL)) == -1) {
 		if(errno == ECONNREFUSED) {
 			return 0;
 		} else {
@@ -71,6 +74,7 @@ int packet_recv(int src, packet_type_t *packet_type, packet_length_t *length, vo
 			exit(1);
 		}
 	}
+	if(retval == 0) return 0;
 	
 	FD_ZERO(&rfds);
 	FD_SET(src, &rfds);
@@ -84,14 +88,21 @@ int packet_recv(int src, packet_type_t *packet_type, packet_length_t *length, vo
 		exit(1);
 	}
 	
-	if((recv(src, *data, *length, MSG_WAITALL)) == -1) {
+	if((retval = recv(src, *data, *length, MSG_WAITALL)) == -1) {
 		if(errno == ECONNREFUSED) {
+			free(*data);
 			return 0;
 		} else {
 			perror("recv3");
 			exit(1);
 		}
-	}	
+	}
+	
+	if(retval == 0) {
+		free(*data);
+		return 0;
+	}
+	
 	return 1;
 }
 
