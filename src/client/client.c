@@ -144,33 +144,34 @@ void connect_to_server() {
 
 // Blocks the whole thing untill auth
 void authenticate() {
+	// Send auth request
 	packet_auth_request packet;
 	strncpy(packet.login, session.login, PLAYER_NAME_MAXSIZE);
 	memcpy(packet.passw, session.password_encrypted, ENCRYPTED_PASSWORD_LENGTH);
 	
 	packet_send(session.socket, PACKET_AUTH_REQUEST, sizeof(packet), &packet);
-	packet_debug(PACKET_AUTH_REQUEST, sizeof(packet), &packet);
 	
-	/* For auth response
+	
+	// Handle auth response
 	packet_type_t ptype;
 	packet_length_t plen;
 	void *payload;
 	
-	packet_recv(session.socket, &ptype, &plen, &payload);
-	packet_debug(ptype, plen, payload);
-	*/
-	//exit(0);
+	if(!packet_recv(session.socket, &ptype, &plen, &payload) || ptype != PACKET_AUTH_RESPONSE || !((packet_auth_response*)payload)->response) {
+		fprintf(stderr, "Unable to authenticate!\n");
+		exit(EXIT_FAILURE);
+	}
 }
 
 
 void input_thread_remote(void *arg) {
-	packet_type_t packet_type;
-	packet_length_t length;
-	void *data;
+	packet_type_t ptype;
+	packet_length_t plen;
+	void *payload;
 	
 	while(1) {
 		// Read from socket with blocking
-		if(!packet_recv(session.socket, &packet_type, &length, &data)) { // Disconnected
+		if(!packet_recv(session.socket, &ptype, &plen, &payload)) { // Disconnected
 			fprintf(stderr, "Disconnected from server!\n");
 			exit(3);
 		}		
@@ -179,12 +180,12 @@ void input_thread_remote(void *arg) {
 		
 		// Do all the stuff in here
 		printf("Remote input got packet!\n");
-		printf("Packet: %d, %d\n", packet_type, length);
+		packet_debug(ptype, plen, payload);
 		
 		pthread_mutex_unlock(&reactor.locking_mutex);
 
 		// No leaks here! :)
-		free(data);
+		free(payload);
 	}
 }
 
@@ -208,9 +209,7 @@ void terminate() {
 	exit(EXIT_SUCCESS);
 }
 
-int main(int args, unsigned char **argv) {
-	int forkpid;
-
+int main(int args, char **argv) {
 	if(args != 5) {
 		printf("Usage: %s host port login password\n", argv[0]);
 		printf("Connects to chess server.\n");
@@ -227,7 +226,7 @@ int main(int args, unsigned char **argv) {
 	strncpy((char*)&session.login, argv[3], PLAYER_NAME_MAXSIZE-1);
 	session.login[PLAYER_NAME_MAXSIZE-1] = '\0';
 	
-	MD5(argv[4], strlen(argv[4]), (unsigned char*)&session.password_encrypted);
+	MD5((unsigned char *) argv[4], strlen(argv[4]), (unsigned char*)&session.password_encrypted);
 	
 	printf("Connecting...\n");
 	
