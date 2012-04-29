@@ -31,9 +31,7 @@ void authentication(int client_socket, packet_auth_request *packet){
 		}
 		*/
 	}
-	free(packet->login);
-	free(packet->passw);
-	free(packet);
+	
 }
 
 void* Session(void *arg){
@@ -46,7 +44,10 @@ void* Session(void *arg){
 	printf("creating a thread for session for client with socket %d\n", current_session->client_socket);
 	
 	while(1){
-		packet_recv(current_session->client_socket, &packet_type, &length, &data);
+		if( !packet_recv(current_session->client_socket, &packet_type, &length, &data)){
+			printf("client with socket %d disconnected\n", current_session->client_socket);
+			break;
+		}
 		
 		packet_debug(packet_type, length, data);
 		

@@ -18,7 +18,7 @@ int server_socket;
 struct sockaddr_in server_addres;
 
 int main(int argc, char **args){
-	int client_socket, port;
+	int client_socket, port, server_reuseaddr;
 	struct sockaddr_in client_addres;
 	socklen_t client_socklen;
 	
@@ -34,6 +34,9 @@ int main(int argc, char **args){
 		perror("socket");
 		exit(1);
 	}
+	
+	server_reuseaddr = 1;
+	setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &server_reuseaddr, sizeof(server_reuseaddr));
 	
 	server_addres.sin_family = PF_INET;
 	server_addres.sin_port = htons(port);
