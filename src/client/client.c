@@ -131,10 +131,10 @@ void connect_to_server() {
 		exit(EXIT_FAILURE);
 	}
 	
-	memset(&address, 0, sizeof(address));
-	memcpy(&address.sin_addr.s_addr, &session.server.host->h_addr, session.server.host->h_length);
+	bzero((char *)&address, sizeof(address));
 	address.sin_family = AF_INET;
 	address.sin_port = htons(session.server.port);
+    bcopy((char *)session.server.host->h_addr, (char *)&address.sin_addr.s_addr, session.server.host->h_length);
 	
 	if(connect(session.socket, (struct sockaddr *) &address, sizeof(address))) {
 		perror("connect");
