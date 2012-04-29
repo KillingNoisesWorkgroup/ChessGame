@@ -13,13 +13,13 @@ typedef struct session{
 	int id;
 	login_entry *player;
 	int state;
-	struct sockaddr *client_addres;
+	struct sockaddr_in *client_addres;
 	int client_socket;
 	pthread_t thread;
 } session;
 
 void* Session(void *arg);
-void create_session(int client_socket, struct sockaddr *client_addres);
+void create_session(int client_socket, struct sockaddr_in *client_addres);
 void authentication(int client_socket, packet_auth_request *packet);
 
 #endif

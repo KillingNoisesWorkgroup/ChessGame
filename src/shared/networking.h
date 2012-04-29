@@ -2,6 +2,7 @@
 #define H_SERVER_NETWORKING_GUARD
 
 #include <stdint.h>
+#include <openssl/md5.h>
 
 // Turn on packing mode of the compiler
 #pragma pack(push, 1)

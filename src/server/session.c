@@ -12,28 +12,24 @@ void authentication(int client_socket, packet_auth_request *packet){
 	login_entry *login;
 	int *last_id;
 	// last user id
+	printf("trying to authenticate %s\n", packet->login);
 	last_id = &(((login_entry*)((current_lobby.logins)->data[current_lobby.logins->size]))->id);
-	
-	printf("ololo\n");
-	fflush(stdout);
 	if( (login = login_entry_find(packet->login)) == NULL){
+		printf("it's a new user! lets make him/her a registration\n");
 		*last_id +=1;
-		printf("ololo2\n");
-		fflush(stdout);
 		login = init_login_entry(*last_id);
 		strncpy(login->login, packet->login, strlen(login->login));
 		memcpy(login->passw, packet->passw, ENCRYPTED_PASSWORD_LENGTH);
-		create_password(*last_id, packet->login, packet->passw);
+		login_entry_register(*last_id, packet->login, packet->passw);
 		dynamic_array_add(current_lobby.logins, login);
 	} else {
-		printf("ololo3\n");
-		fflush(stdout);
+		/* FIXME
 		if( strncmp(login->passw, packet->passw, ENCRYPTED_PASSWORD_LENGTH) == 0){
-			// packet_send(client_socket, )
+			
 		} else {
-			shutdown(client_socket, SHUT_RDWR);
-			pthread_exit(NULL);
+			
 		}
+		*/
 	}
 	free(packet->login);
 	free(packet->passw);
@@ -46,8 +42,8 @@ void* Session(void *arg){
 	session *current_session;
 	void *data;
 	
-	printf("Trololo, i'm a thread, and this is jackass\n");
 	current_session = arg;
+	printf("creating a thread for session for client with socket %d\n", current_session->client_socket);
 	
 	while(1){
 		packet_recv(current_session->client_socket, &packet_type, &length, &data);
@@ -62,7 +58,7 @@ void* Session(void *arg){
 	}
 }
 
-void create_session(int client_socket, struct sockaddr *client_addres){
+void create_session(int client_socket, struct sockaddr_in *client_addres){
 	session *new_session;
 	pthread_t thread;
 	if( (new_session = malloc(sizeof(session))) == NULL){

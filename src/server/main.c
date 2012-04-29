@@ -47,7 +47,7 @@ int main(int argc, char **args){
 	
 	create_lobby();
 	read_passwords();
-	printf("LOGINS:\n");
+	printf("Logins readed from passwd file:\n");
 	print_passwords();
 	
 	listen(server_socket, CONNECTION_REQUEST_QUEUE_BACKLOG_SIZE);
@@ -55,11 +55,11 @@ int main(int argc, char **args){
 	printf("Listening on 0.0.0.0:%d\n", port);
 	
 	while(1){
-		if( (client_socket = accept(server_socket, &client_addres, &client_socklen)) == -1){
+		if( (client_socket = accept(server_socket, (struct sockaddr *)(&client_addres), &client_socklen)) == -1){
 			perror("accept");
 			exit(1);
 		}
-		printf("client socket -> %d\n", client_socket);
+		printf("client connected on socket %d\n", client_socket);
 		create_session(client_socket, &client_addres);
 	}
 	return 0;

@@ -3,7 +3,6 @@
 
 /* PACKET C2S - Auth Request */
 
-#include <openssl/md5.h>
 #define PLAYER_NAME_MAXSIZE 256
 #define ENCRYPTED_PASSWORD_LENGTH MD5_DIGEST_LENGTH
 
@@ -12,3 +11,11 @@ typedef struct packet_auth_request{
 	char login[PLAYER_NAME_MAXSIZE];
 	char passw[ENCRYPTED_PASSWORD_LENGTH];
 } packet_auth_request;
+
+/* PACKET S2C - Auth Response */
+
+#define PACKET_AUTH_RESPONSE 2
+typedef struct packet_auth_response{
+	uint8_t response;
+} packet_auth_response;
+

@@ -27,20 +27,14 @@ login_entry* login_entry_find(char* login){
 	login_entry* log_e;
 	int i;
 	log_e = NULL;
-	printf("Searching for login %s\n", login);
-	printf("Logins array size is %d\n", current_lobby.logins->size);
-	fflush(stdout);
+	printf("searching for login %s\n", login);
+	printf("logins array size is %d\n", current_lobby.logins->size);
 	for(i = 0; i < current_lobby.logins->size; i++){
-		printf("is %d a searched login?\n", i);
-		fflush(stdout);
 		if( strcmp( ((login_entry*)(current_lobby.logins->data[i]))->login, login) == 0){
 			log_e = (login_entry*)(current_lobby.logins->data[i]);
-			printf("yes, it is!\n");
-			fflush(stdout);
+			printf("login found\n");
 			break;
 		}
-		printf("no, it isn't\n");
-		fflush(stdout);
 	}
 	return log_e;
 }
@@ -49,8 +43,8 @@ void read_passwords(){
 	int id, read, length;
 	char* buf = NULL;
 	login_entry *login;
+	printf("reading passwords\n");
 	while((read = getline(&buf, &length, passwd)) != -1){
-		printf("reading password\n");
 		fflush(stdout);
 		if(read <= 0) break;
 		login = init_login_entry(0);
@@ -72,7 +66,7 @@ void print_passwords(){
 	}
 }
 
-void create_password(int id, char* login, char* passw){
+void login_entry_register(int id, char* login, char* passw){
 	fprintf(passwd, "\n%d ", id);
 	fprintf(passwd, "%s ", login);
 	fprintf(passwd, "%s", passw);
