@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "login_entry.h"
 #include "lobby.h"
@@ -15,7 +16,7 @@ login_entry* init_login_entry(int id){
 		perror("malloc");
 		exit(1);
 	}
-	if( (log_e->passw = malloc(ENCRYPTED_PASSWORD_LENGTH)) == NULL){
+	if( (log_e->passw = malloc(ENCRYPTED_PASSWORD_LENGTH * 2 + 1)) == NULL){
 		perror("malloc");
 		exit(1);
 	}
@@ -45,14 +46,17 @@ void read_passwords(){
 	login_entry *login;
 	printf("reading passwords\n");
 	while((read = getline(&buf, &length, passwd)) != -1){
-		fflush(stdout);
 		if(read <= 0) break;
 		login = init_login_entry(0);
 		sscanf(buf, "%d %s %s", &id, login->login, login->passw);
-		login->id = id;
-		dynamic_array_add(current_lobby.logins, login);
-		free(buf);
-		buf = NULL;
+		if( strlen(login->login) ){
+			login->id = id;
+			dynamic_array_add(current_lobby.logins, login);
+			free(buf);
+			buf = NULL;
+		} else {
+			free(login);
+		}
 	}
 }
 
@@ -70,5 +74,6 @@ void login_entry_register(int id, char* login, char* passw){
 	fprintf(passwd, "\n%d ", id);
 	fprintf(passwd, "%s ", login);
 	fprintf(passwd, "%s", passw);
+	fflush(passwd);
 }
 

@@ -8,31 +8,51 @@
 #include "lobby.h"
 #include "../shared/networking.h"
 
+char* passw_to_hex(char* passw, int size){
+	char* hex;
+	int i;
+	if( (hex = malloc(size * 2 + 1)) == NULL){
+		perror("malloc");
+		exit(1);
+	}
+	for( i = 0; i < size; i++) sprintf(&(hex[i*2]), "%02x", passw[i]);
+	hex[i*2 + 1] = 0;
+	return hex;
+}
+
+void send_auth_response(int dst, int val){
+	packet_auth_response packet;
+	packet.response = (uint8_t)val;
+	packet_send(dst, (packet_type_t)PACKET_AUTH_RESPONSE, (packet_length_t)sizeof(packet), &packet);
+}
+
 void authentication(int client_socket, packet_auth_request *packet){
 	login_entry *login;
-	int *last_id;
+	int last_id;
+	char *hex;
 	// last user id
 	printf("trying to authenticate %s\n", packet->login);
-	last_id = &(((login_entry*)((current_lobby.logins)->data[current_lobby.logins->size]))->id);
+	last_id = ((login_entry*)((current_lobby.logins)->data[current_lobby.logins->size - 1]))->id;
+	hex = passw_to_hex(packet->passw, strlen(packet->passw));
 	if( (login = login_entry_find(packet->login)) == NULL){
 		printf("it's a new user! lets make him/her a registration\n");
-		*last_id +=1;
-		login = init_login_entry(*last_id);
-		strncpy(login->login, packet->login, strlen(login->login));
-		
-		memcpy(login->passw, packet->passw, ENCRYPTED_PASSWORD_LENGTH);
-		login_entry_register(*last_id, packet->login, packet->passw);
+		fflush(stdout);
+		login = init_login_entry(last_id+1);
+		strncpy(login->login, packet->login, strlen(packet->login));
+		memcpy(login->passw, hex, strlen(hex));
+		login_entry_register(login->id, login->login, login->passw);
 		dynamic_array_add(current_lobby.logins, login);
+		send_auth_response(client_socket, 1);
 	} else {
-		/* FIXME
-		if( strncmp(login->passw, packet->passw, ENCRYPTED_PASSWORD_LENGTH) == 0){
-			
+		if( strcmp(login->passw, hex) == 0){
+			printf("password is correct\n");
+			send_auth_response(client_socket, 1);
 		} else {
-			
+			printf("password is incorrect\n");
+			send_auth_response(client_socket, 0);
 		}
-		*/
 	}
-	
+	free(hex);
 }
 
 void* Session(void *arg){
