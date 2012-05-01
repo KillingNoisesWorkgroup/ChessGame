@@ -30,9 +30,8 @@ void dynamic_array_add(dynamic_array* arr, void* data){
 }
 
 void dynamic_array_delete_at(dynamic_array* arr, int n){
-	memmove(arr->data[n],
-		arr->data[n+1],
-		((arr->size--) - n)*arr->size_of_data ); 
+	memmove(arr->data[n], arr->data[arr->size - 1], arr->size_of_data);
+	arr->size --;
 	if(arr->size % 10 == 0){
 		if( (arr->data = realloc(arr->data, sizeof(char*)*(arr->size-DYNAMIC_ARRAY_SIZE_INC))) == NULL){
 			perror("realloc");

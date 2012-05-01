@@ -11,6 +11,7 @@
 #include "lobby.h"
 #include "game_description.h"
 #include "dynamic_array.h"
+#include "memory_dump.h"
 
 #define CONNECTION_REQUEST_QUEUE_BACKLOG_SIZE 10
 
@@ -21,7 +22,7 @@ int main(int argc, char **args){
 	int client_socket, port, server, server_reuseaddr;
 	struct sockaddr_in client_addres;
 	socklen_t client_socklen;
-	
+
 	if( argc != 2){
 		printf("Usage: %s port\n", args[0]);
 		printf("Creates a server listening at port\n");
@@ -49,9 +50,6 @@ int main(int argc, char **args){
 	}
 	
 	create_lobby();
-	read_passwords();
-	printf("Logins readed from passwd file:\n");
-	print_passwords();
 	
 	listen(server_socket, CONNECTION_REQUEST_QUEUE_BACKLOG_SIZE);
 	

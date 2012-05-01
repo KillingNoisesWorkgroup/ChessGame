@@ -7,6 +7,7 @@
 #include "session.h"
 #include "lobby.h"
 #include "../shared/networking.h"
+#include "memory_dump.h"
 
 char* passw_to_hex(char* passw, int size){
 	char* hex;
@@ -32,17 +33,21 @@ void authentication(int client_socket, packet_auth_request *packet){
 	char *hex;
 	// last user id
 	printf("trying to authenticate %s\n", packet->login);
-	last_id = ((login_entry*)((current_lobby.logins)->data[current_lobby.logins->size - 1]))->id;
+	if( current_lobby.logins->size == 0) last_id = 0;
+	else {
+		last_id = 
+		((login_entry*)((current_lobby.logins)->data[current_lobby.logins->size - 1]))->id;
+	}
 	hex = passw_to_hex(packet->passw, strlen(packet->passw));
 	if( (login = login_entry_find(packet->login)) == NULL){
 		printf("it's a new user! lets make him/her a registration\n");
 		fflush(stdout);
 		login = init_login_entry(last_id+1);
 		strncpy(login->login, packet->login, strlen(packet->login));
-		memcpy(login->passw, hex, strlen(hex));
-		login_entry_register(login->id, login->login, login->passw);
+		strncpy(login->passw, hex, strlen(hex));
 		dynamic_array_add(current_lobby.logins, login);
 		send_auth_response(client_socket, 1);
+		create_memory_dump();
 	} else {
 		if( strcmp(login->passw, hex) == 0){
 			printf("password is correct\n");

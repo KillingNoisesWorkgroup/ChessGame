@@ -21,6 +21,8 @@ typedef struct session{
 void* Session(void *arg);
 void create_session(int client_socket, struct sockaddr_in *client_addres);
 void authentication(int client_socket, packet_auth_request *packet);
+void send_auth_response(int dst, int val);
+char* passw_to_hex(char* passw, int size);
 
 #endif
 
