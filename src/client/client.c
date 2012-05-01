@@ -11,6 +11,8 @@
 #include <pthread.h>
 #include <openssl/md5.h>
 
+#include "helpers.h"
+
 #include "../shared/shared.h"
 #include "../shared/networking.h"
 
@@ -193,6 +195,7 @@ void input_thread_local(void *arg) {
 	char *input;
 	while(1) {
 		// Read from input stream with blocking
+		print_prompt();
 		scanf("%as", &input);		
 		
 		pthread_mutex_lock(&reactor.locking_mutex);
