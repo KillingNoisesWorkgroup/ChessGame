@@ -53,8 +53,10 @@ void authentication(int client_socket, packet_auth_request *packet){
 			printf("password is correct\n");
 			send_auth_response(client_socket, 1);
 		} else {
-			printf("password is incorrect\n");
+			printf("password is incorrect, closing socket and exiting thread\n");
 			send_auth_response(client_socket, 0);
+			close(client_socket);
+			pthread_exit(NULL);
 		}
 	}
 	free(hex);
