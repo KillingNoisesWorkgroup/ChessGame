@@ -77,7 +77,7 @@ void* Session(void *arg){
 			break;
 		}
 		
-		packet_debug(packet_type, length, data);
+		//packet_debug(packet_type, length, data);
 		
 		switch(packet_type){
 			case PACKET_AUTH_REQUEST:
