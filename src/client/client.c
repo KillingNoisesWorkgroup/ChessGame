@@ -11,34 +11,11 @@
 #include <pthread.h>
 #include <openssl/md5.h>
 
+#include "client.h"
 #include "helpers.h"
 
 #include "../shared/shared.h"
 #include "../shared/networking.h"
-
-typedef struct server_rec {
-	struct hostent *host;
-	int port;
-} server_rec;
-
-typedef struct session_rec {
-	server_rec server;
-
-	char login[PLAYER_NAME_MAXSIZE];
-	unsigned char password_encrypted[ENCRYPTED_PASSWORD_LENGTH];
-	
-	int socket;
-} session_rec;
-
-// This is NOT a real reactor.
-typedef struct reactor_rec {
-	pthread_t thread_input_remote;
-	pthread_t thread_input_local;
-	pthread_mutex_t locking_mutex;
-} reactor_rec;
-
-session_rec session;
-reactor_rec reactor;
 
 /*
 void user_communications(void) {
@@ -192,17 +169,26 @@ void input_thread_remote(void *arg) {
 }
 
 void input_thread_local(void *arg) {
-	char *input;
+	char *buff;
+	int len;
+	int read;
+	
 	while(1) {
 		// Read from input stream with blocking
-		print_prompt();
-		scanf("%as", &input);		
+		print_prompt();	
+		if(!get_command(&buff, &len)) {
+			printf("EOF\n");
+			exit(0);
+		}
 		
 		pthread_mutex_lock(&reactor.locking_mutex);
 		
 		// Do all the stuff in here
+		printf("Command: %s\n", buff);
 		
 		pthread_mutex_unlock(&reactor.locking_mutex);
+		
+		free(buff);
 	}
 }
 
@@ -235,7 +221,7 @@ int main(int args, char **argv) {
 	
 	connect_to_server();
 	
-	printf("Connected!\n");
+	printf("Authenticating...\n");
 	
 	authenticate();
 	
@@ -247,7 +233,7 @@ int main(int args, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 	
-	printf("Working!\n");
+	// Working...
 	
 	pthread_join(reactor.thread_input_local, NULL);
 	pthread_join(reactor.thread_input_remote, NULL);
