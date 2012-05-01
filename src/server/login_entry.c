@@ -40,3 +40,13 @@ login_entry* login_entry_find(char* login){
 	return log_e;
 }
 
+void print_passwords(){
+	int i;
+	login_entry *l;
+	for(i = 0; i < current_lobby.logins->size; i++){
+		l = (login_entry*)(current_lobby.logins->data[i]);
+		printf("id %d, login %s, passw %s\n", l->id, l->login, l->passw);
+		fflush(stdout);
+	}
+}
+

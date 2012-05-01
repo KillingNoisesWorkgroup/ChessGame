@@ -8,6 +8,7 @@
 #include "lobby.h"
 #include "../shared/networking.h"
 #include "memory_dump.h"
+#include "shutdown_server.h"
 
 char* passw_to_hex(char* passw, int size){
 	char* hex;
@@ -27,18 +28,23 @@ void send_auth_response(int dst, int val){
 	packet_send(dst, (packet_type_t)PACKET_AUTH_RESPONSE, (packet_length_t)sizeof(packet), &packet);
 }
 
-void authentication(int client_socket, packet_auth_request *packet){
+void kick(session *s){
+	close(s->client_socket);
+	pthread_exit(NULL);
+}
+
+void authentication(session *s, packet_auth_request *packet){
 	login_entry *login;
 	int last_id;
 	char *hex;
 	// last user id
 	printf("trying to authenticate %s\n", packet->login);
+	//print_passwords();
 	if( current_lobby.logins->size == 0) last_id = 0;
 	else {
-		last_id = 
-		((login_entry*)((current_lobby.logins)->data[current_lobby.logins->size - 1]))->id;
+		last_id = ((login_entry*)((current_lobby.logins)->data[current_lobby.logins->size - 1]))->id;
 	}
-	hex = passw_to_hex(packet->passw, strlen(packet->passw));
+	hex = passw_to_hex(packet->passw, ENCRYPTED_PASSWORD_LENGTH);
 	if( (login = login_entry_find(packet->login)) == NULL){
 		printf("it's a new user! lets make him/her a registration\n");
 		fflush(stdout);
@@ -46,17 +52,20 @@ void authentication(int client_socket, packet_auth_request *packet){
 		strncpy(login->login, packet->login, strlen(packet->login));
 		strncpy(login->passw, hex, strlen(hex));
 		dynamic_array_add(current_lobby.logins, login);
-		send_auth_response(client_socket, 1);
+		send_auth_response(s->client_socket, 1);
 		create_memory_dump();
+		s->state = SESSION_STATE_WORK;
+		s->player = login;
 	} else {
 		if( strcmp(login->passw, hex) == 0){
 			printf("password is correct\n");
-			send_auth_response(client_socket, 1);
+			send_auth_response(s->client_socket, 1);
+			s->state = SESSION_STATE_WORK;
+			s->player = login;
 		} else {
 			printf("password is incorrect, closing socket and exiting thread\n");
-			send_auth_response(client_socket, 0);
-			close(client_socket);
-			pthread_exit(NULL);
+			send_auth_response(s->client_socket, 0);
+			kick(s);
 		}
 	}
 	free(hex);
@@ -74,16 +83,23 @@ void* Session(void *arg){
 	while(1){
 		if( !packet_recv(current_session->client_socket, &packet_type, &length, &data)){
 			printf("client with socket %d disconnected\n", current_session->client_socket);
+			//kick(current_session);
 			break;
 		}
 		
 		//packet_debug(packet_type, length, data);
 		
 		switch(packet_type){
-			case PACKET_AUTH_REQUEST:
-				authentication(current_session->client_socket, data);
-				break;
+		case PACKET_AUTH_REQUEST:
+			authentication(current_session, data);
+			break;
+		case PACKET_SERVER_SHUTDOWN:
+			if( current_session->state != SESSION_STATE_WORK ||
+				current_session->player->id != ADMIN_ID) kick(current_session);
+			else shutdown_server;
+			break;
 		}
+		free(data);
 	}
 }
 

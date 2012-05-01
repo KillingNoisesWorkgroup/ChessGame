@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-c
 LDFLAGS=-lpthread
-SOURCES=session.c memory_dump.c login_entry.c game_description.c \
+SOURCES=session.c memory_dump.c shutdown_server.c login_entry.c game_description.c \
 		dynamic_array.c	lobby.c main.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=server.exe

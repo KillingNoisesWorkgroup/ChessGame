@@ -8,6 +8,7 @@
 
 #define SESSION_STATE_INITIAL_STATE 0
 #define SESSION_STATE_WAITING_FOR_AUTHENTICATION 1
+#define SESSION_STATE_WORK 2
 
 typedef struct session{
 	int id;
@@ -20,9 +21,10 @@ typedef struct session{
 
 void* Session(void *arg);
 void create_session(int client_socket, struct sockaddr_in *client_addres);
-void authentication(int client_socket, packet_auth_request *packet);
+void authentication(session *s, packet_auth_request *packet);
 void send_auth_response(int dst, int val);
 char* passw_to_hex(char* passw, int size);
+void kick(session *s);
 
 #endif
 

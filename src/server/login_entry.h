@@ -5,6 +5,8 @@
 
 #include "dynamic_array.h"
 
+#define ADMIN_ID 0
+
 typedef struct login_entry{
 	char *login;
 	char *passw;
