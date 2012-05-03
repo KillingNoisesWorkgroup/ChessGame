@@ -17,7 +17,7 @@
 
 void cb_remote_default(int ptype, int plen, void *payload) {
 	on else {
-		printf("Unknown packet!\n");
+		output("Unknown packet!\n");
 		packet_debug(ptype, plen, payload);
 	}
 }
@@ -25,22 +25,22 @@ void cb_remote_default(int ptype, int plen, void *payload) {
 void cb_local_default(char *buff, int len) {	
 	on command("help") {
 		
-		printf("Commands list:\n");
-		printf("  help\n");
-		printf("  shutdown\n");
-		printf("  exit\n");
+		output("Commands list:\n");
+		output("  help\n");
+		output("  shutdown\n");
+		output("  exit\n");
 	
 	} command("shutdown") {
 	
-		printf("Shutting the server down...\n");
+		output("Shutting the server down...\n");
 		// TODO: send shutdown packet
 		
 	} command("exit") {
 	
-		printf("Bye!\n");
+		output("Bye!\n");
 		exit(EXIT_SUCCESS);
 		
 	} else {
-		printf("Unknown command!\n");
+		output("Unknown command!\n");
 	}
 }
