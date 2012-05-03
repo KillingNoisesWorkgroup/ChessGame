@@ -13,6 +13,7 @@
 
 #include "client.h"
 #include "helpers.h"
+#include "callbacks.h"
 
 #include "../shared/shared.h"
 #include "../shared/networking.h"
