@@ -1,6 +1,8 @@
+#include <stdio.h>
+
 #include "client.h"
 #include "callbacks.h"
 
-callback_remote_t cb_remote_default {
-	printf("Hi\n");
+void cb_remote_default() {
+	printf("Test\n");
 }
