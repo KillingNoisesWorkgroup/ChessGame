@@ -144,6 +144,11 @@ void authenticate() {
 }
 
 
+void reactor_init() {
+	reactor.callback_remote = NULL;
+	reactor.callback_local = NULL;
+}
+
 void input_thread_remote(void *arg) {
 	packet_type_t ptype;
 	packet_length_t plen;
@@ -162,6 +167,12 @@ void input_thread_remote(void *arg) {
 		printf("Remote input got packet!\n");
 		packet_debug(ptype, plen, payload);
 		
+		if(reactor.callback_remote) {
+			reactor.callback_remote(ptype, plen, payload);
+		} else {
+			cb_remote_default(ptype, plen, payload);
+		}
+		
 		pthread_mutex_unlock(&reactor.locking_mutex);
 
 		// No leaks here! :)
@@ -171,21 +182,26 @@ void input_thread_remote(void *arg) {
 
 void input_thread_local(void *arg) {
 	char *buff;
-	int len;
-	int read;
+	size_t len;
 	
 	while(1) {
 		// Read from input stream with blocking
 		print_prompt();	
-		if(!get_command(&buff, &len)) {
-			printf("EOF\n");
-			exit(0);
+		if(!get_string(&buff, &len)) {
+			printf("\nEOF\n");
+			exit(EXIT_SUCCESS);
 		}
 		
 		pthread_mutex_lock(&reactor.locking_mutex);
 		
 		// Do all the stuff in here
-		printf("Command: %s\n", buff);
+		printf("Command: %s", buff);
+		
+		if(reactor.callback_local) {
+			reactor.callback_local(buff, len);
+		} else {
+			cb_local_default(buff, len);
+		}
 		
 		pthread_mutex_unlock(&reactor.locking_mutex);
 		
@@ -228,6 +244,12 @@ int main(int args, char **argv) {
 	
 	printf("Success!\n");
 	
+	reactor_init();
+	
+	// Create threads
+	
+	pthread_mutex_init(&reactor.locking_mutex, NULL);
+	
 	if(pthread_create(&reactor.thread_input_local, NULL, (void*)input_thread_local, NULL) ||
 		pthread_create(&reactor.thread_input_remote, NULL, (void*)input_thread_remote, NULL)) {
 		fprintf(stderr, "Unable to create thread!\n");
@@ -236,8 +258,13 @@ int main(int args, char **argv) {
 	
 	// Working...
 	
+	
+	// Join threads
+	
 	pthread_join(reactor.thread_input_local, NULL);
 	pthread_join(reactor.thread_input_remote, NULL);
+	
+	pthread_mutex_destroy(&reactor.locking_mutex);
 	
 	return EXIT_SUCCESS;
 }

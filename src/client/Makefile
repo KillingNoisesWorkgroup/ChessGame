@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-c
+CFLAGS=-c -Wall
 LDFLAGS=-lpthread -lssl -lcrypto
 SOURCES=client.c helpers.c callbacks.c
 OBJECTS=$(SOURCES:.c=.o)
