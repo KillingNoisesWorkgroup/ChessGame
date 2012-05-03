@@ -23,7 +23,7 @@ void packet_send(int dst, packet_type_t packet_type, packet_length_t length, voi
 	*(packet_type_t*)p = packet_type;
 	p += sizeof(packet_type);
 	
-	*(packet_length_t*)p = length;
+	*(packet_length_t*)p = htons(length);
 	p += sizeof(length);
 	
 	memcpy(p, raw_data, length);
@@ -75,6 +75,8 @@ int packet_recv(int src, packet_type_t *packet_type, packet_length_t *length, vo
 		}
 	}
 	if(retval == 0) return 0;
+	
+	*length = ntohs(*length);
 	
 	FD_ZERO(&rfds);
 	FD_SET(src, &rfds);
