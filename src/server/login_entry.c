@@ -12,7 +12,7 @@ login_entry* init_login_entry(int id){
 		perror("malloc");
 		exit(1);
 	}
-	if( (log_e->login = malloc(PLAYER_NAME_MAXSIZE)) == NULL){
+	if( (log_e->login = malloc(PLAYER_NAME_MAXSIZE + 1)) == NULL){
 		perror("malloc");
 		exit(1);
 	}
@@ -28,12 +28,9 @@ login_entry* login_entry_find(char* login){
 	login_entry* log_e;
 	int i;
 	log_e = NULL;
-	printf("searching for login %s\n", login);
-	printf("logins array size is %d\n", current_lobby.logins->size);
 	for(i = 0; i < current_lobby.logins->size; i++){
 		if( strcmp( ((login_entry*)(current_lobby.logins->data[i]))->login, login) == 0){
 			log_e = (login_entry*)(current_lobby.logins->data[i]);
-			printf("login found\n");
 			break;
 		}
 	}
@@ -49,4 +46,3 @@ void print_passwords(){
 		fflush(stdout);
 	}
 }
-

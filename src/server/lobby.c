@@ -13,4 +13,3 @@ void create_lobby(){
 	current_lobby.quickstart_players = init_dynamic_array(sizeof(int));
 	read_memory_dump();
 }
-

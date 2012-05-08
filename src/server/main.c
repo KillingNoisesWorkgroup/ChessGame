@@ -48,19 +48,18 @@ int main(int argc, char **args){
 		perror("bind");
 		exit(1);
 	}
-	
+	print_log("main", "Creating lobby...");
 	create_lobby();
 	
 	listen(server_socket, CONNECTION_REQUEST_QUEUE_BACKLOG_SIZE);
-	
-	printf("Listening on 0.0.0.0:%d\n", port);
+	print_log("main", "Waiting for connections on %d port", port);
 	
 	while(1){
 		if( (client_socket = accept(server_socket, (struct sockaddr *)(&client_addres), &client_socklen)) == -1){
 			perror("accept");
 			exit(1);
 		}
-		printf("client connected on socket %d\n", client_socket);
+		print_log("main", "Client connected on socket %d", client_socket);
 		create_session(client_socket, &client_addres);
 	}
 	return 0;

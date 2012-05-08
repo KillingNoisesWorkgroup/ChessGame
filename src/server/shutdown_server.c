@@ -5,8 +5,7 @@
 
 /* There will be all the memory cleanup functions in future */
 
-void shutdown(){
+void shutdown_server(){
 	create_memory_dump();
 	exit(1);
 }
-

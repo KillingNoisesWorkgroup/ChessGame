@@ -9,16 +9,21 @@
 #include "../shared/networking.h"
 #include "memory_dump.h"
 #include "shutdown_server.h"
+#include "logging.h"
 
-char* passw_to_hex(char* passw, int size){
+char* passw_to_hex(unsigned char * passw, int size){
 	char* hex;
+	char tmp[10];
 	int i;
 	if( (hex = malloc(size * 2 + 1)) == NULL){
 		perror("malloc");
 		exit(1);
 	}
-	for( i = 0; i < size; i++) sprintf(&(hex[i*2]), "%02x", passw[i]);
-	hex[i*2 + 1] = 0;
+	hex[0] = '\0';
+	for(i = 0; i < size; i++) {
+		sprintf(tmp, "%02x", passw[i]);
+		strcat(hex, tmp);
+	}
 	return hex;
 }
 
@@ -30,41 +35,45 @@ void send_auth_response(int dst, int val){
 
 void kick(session *s){
 	close(s->client_socket);
+	print_log(s->thread_info, "Thread terminated");
 	pthread_exit(NULL);
+}
+
+login_entry* reg_new_user(packet_auth_request* packet, int id, char* hex){
+	login_entry* login;
+	login = init_login_entry(id);
+	strcpy(login->login, packet->login);
+	strncpy(login->passw, hex, strlen(hex));
+	dynamic_array_add(current_lobby.logins, login);
+	create_memory_dump();
+	return login;
 }
 
 void authentication(session *s, packet_auth_request *packet){
 	login_entry *login;
 	int last_id;
 	char *hex;
-	// last user id
-	printf("trying to authenticate %s\n", packet->login);
-	//print_passwords();
 	if( current_lobby.logins->size == 0) last_id = 0;
 	else {
 		last_id = ((login_entry*)((current_lobby.logins)->data[current_lobby.logins->size - 1]))->id;
 	}
 	hex = passw_to_hex(packet->passw, ENCRYPTED_PASSWORD_LENGTH);
 	if( (login = login_entry_find(packet->login)) == NULL){
-		printf("it's a new user! lets make him/her a registration\n");
-		fflush(stdout);
-		login = init_login_entry(last_id+1);
-		strncpy(login->login, packet->login, strlen(packet->login));
-		strncpy(login->passw, hex, strlen(hex));
-		dynamic_array_add(current_lobby.logins, login);
+		print_log(s->thread_info, "Authentication success with new user registration");
+		login = reg_new_user(packet, last_id+1, hex);
 		send_auth_response(s->client_socket, 1);
-		create_memory_dump();
 		s->state = SESSION_STATE_WORK;
 		s->player = login;
 	} else {
 		if( strcmp(login->passw, hex) == 0){
-			printf("password is correct\n");
+			print_log(s->thread_info, "Authentication success");
 			send_auth_response(s->client_socket, 1);
 			s->state = SESSION_STATE_WORK;
 			s->player = login;
 		} else {
-			printf("password is incorrect, closing socket and exiting thread\n");
+			print_log(s->thread_info, "Authentication failure");
 			send_auth_response(s->client_socket, 0);
+			free(hex);
 			kick(s);
 		}
 	}
@@ -78,16 +87,16 @@ void* Session(void *arg){
 	void *data;
 	
 	current_session = arg;
-	printf("creating a thread for session for client with socket %d\n", current_session->client_socket);
+	snprintf(current_session->thread_info, sizeof current_session->thread_info, "session %0lX", current_session->thread);
+	print_log(current_session->thread_info, "Created new thread");
 	
 	while(1){
 		if( !packet_recv(current_session->client_socket, &packet_type, &length, &data)){
-			printf("client with socket %d disconnected\n", current_session->client_socket);
-			//kick(current_session);
+			kick(current_session);
 			break;
 		}
 		
-		//packet_debug(packet_type, length, data);
+		//packet_debug_full(packet_type, length, data);
 		
 		switch(packet_type){
 		case PACKET_AUTH_REQUEST:
@@ -96,7 +105,7 @@ void* Session(void *arg){
 		case PACKET_SERVER_SHUTDOWN:
 			if( current_session->state != SESSION_STATE_WORK ||
 				current_session->player->id != ADMIN_ID) kick(current_session);
-			else shutdown_server;
+			else shutdown_server();
 			break;
 		}
 		free(data);
@@ -105,7 +114,6 @@ void* Session(void *arg){
 
 void create_session(int client_socket, struct sockaddr_in *client_addres){
 	session *new_session;
-	pthread_t thread;
 	if( (new_session = malloc(sizeof(session))) == NULL){
 		perror("malloc");
 		exit(1);
@@ -114,12 +122,10 @@ void create_session(int client_socket, struct sockaddr_in *client_addres){
 	new_session->state = SESSION_STATE_WAITING_FOR_AUTHENTICATION;
 	new_session->client_socket = client_socket;
 	new_session->client_addres = client_addres;
-	new_session->thread = thread;
 	
 	dynamic_array_add(current_lobby.sessions, new_session);
-	if( (pthread_create(&thread, NULL, (void*)Session, (void*)new_session)) != 0){
+	if( (pthread_create(&new_session->thread, NULL, (void*)Session, (void*)new_session)) != 0){
 		perror("pthread_create");
 		exit(1);
 	}
 }
-

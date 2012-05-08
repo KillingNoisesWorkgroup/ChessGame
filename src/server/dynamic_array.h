@@ -14,4 +14,3 @@ void dynamic_array_add(dynamic_array* arr, void* data);
 void dynamic_array_delete_at(dynamic_array* arr, int n);
 
 #endif
-

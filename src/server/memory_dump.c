@@ -15,6 +15,7 @@ void read_logins_dump(FILE *logins){
 		new_login = init_login_entry(id++);
 		fread((void*)&login_length, sizeof(login_length), 1, logins);
 		fread((void*)(new_login->login), login_length, 1, logins);
+		new_login->login[login_length] = 0;
 		fread((void*)&passw_length, sizeof(passw_length), 1, logins);
 		fread((void*)(new_login->passw), passw_length, 1, logins);
 		dynamic_array_add(current_lobby.logins, new_login);
@@ -73,4 +74,3 @@ void create_memory_dump(){
 	fclose(logins);
 	fclose(games);
 }
-
