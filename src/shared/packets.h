@@ -27,3 +27,20 @@ typedef struct packet_auth_response{
 typedef struct packet_server_shutdown{
 	// empty
 } packet_server_shutdown;
+
+
+/* PACKET C2S - Game creation request */
+
+#define PACKET_GAME_CREATE_REQUEST 4
+typedef struct packet_game_create_request{
+	char name;
+	uint8_t spect_num;
+}
+
+
+/* PACKET S2C - Game creation response */
+
+#define PACKET_GAME_CREATION_RESPONSE 5
+typedef struct packet_game_creation_response{
+	uint8_t response;
+}
