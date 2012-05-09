@@ -4,6 +4,7 @@
 #include "client.h"
 #include "helpers.h"
 #include "callbacks.h"
+#include "packet_helpers.h"
 
 // Some helpers to fancy up the code
 #define on if(0){}
@@ -33,7 +34,7 @@ void cb_local_default(char *buff, int len) {
 	} command("shutdown") {
 	
 		output("Shutting the server down...\n");
-		// TODO: send shutdown packet
+		send_shutdown(session.socket);
 		
 	} command("exit") {
 	

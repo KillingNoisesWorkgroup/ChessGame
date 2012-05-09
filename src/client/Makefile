@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-c -Wall
 LDFLAGS=-lpthread -lssl -lcrypto
-SOURCES=client.c helpers.c callbacks.c
+SOURCES=client.c helpers.c callbacks.c packet_helpers.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=client.exe
 
