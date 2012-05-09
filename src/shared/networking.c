@@ -26,7 +26,8 @@ void packet_send(int dst, packet_type_t packet_type, packet_length_t length, voi
 	*(packet_length_t*)p = htons(length);
 	p += sizeof(length);
 	
-	memcpy(p, raw_data, length);
+	if(length > 0 && raw_data)
+		memcpy(p, raw_data, length);
 	
 	if((send(dst, data, sizeof(packet_type) + sizeof(length) + length, 0) == -1)){
 		perror("send");
