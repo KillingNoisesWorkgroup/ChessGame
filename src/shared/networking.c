@@ -79,31 +79,33 @@ int packet_recv(int src, packet_type_t *packet_type, packet_length_t *length, vo
 	
 	*length = ntohs(*length);
 	
-	FD_ZERO(&rfds);
-	FD_SET(src, &rfds);
-	if ((retval = select(src + 1, &rfds, NULL, NULL, NULL)) == -1) {
-		perror("select");
-		exit(1);
-	}
-	
-	if((*data = malloc(*length)) == NULL){
-		perror("malloc");
-		exit(1);
-	}
-	
-	if((retval = recv(src, *data, *length, MSG_WAITALL)) == -1) {
-		if(errno == ECONNREFUSED) {
-			free(*data);
-			return 0;
-		} else {
-			perror("recv3");
+	if(*length > 0) {
+		FD_ZERO(&rfds);
+		FD_SET(src, &rfds);
+		if ((retval = select(src + 1, &rfds, NULL, NULL, NULL)) == -1) {
+			perror("select");
 			exit(1);
 		}
-	}
-	
-	if(retval == 0) {
-		free(*data);
-		return 0;
+		
+		if((*data = malloc(*length)) == NULL){
+			perror("malloc");
+			exit(1);
+		}
+		
+		if((retval = recv(src, *data, *length, MSG_WAITALL)) == -1) {
+			if(errno == ECONNREFUSED) {
+				free(*data);
+				return 0;
+			} else {
+				perror("recv3");
+				exit(1);
+			}
+		}
+		
+		if(retval == 0) {
+			free(*data);
+			return 0;
+		}
 	}
 	
 	return 1;
