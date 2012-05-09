@@ -20,5 +20,6 @@ int login_entry_find(char* login, login_entry** l);
 void read_passwords();
 void print_passwords();
 void login_entry_register(int id, char *login, char * passw);
+int isadmin(login_entry* l);
 
 #endif

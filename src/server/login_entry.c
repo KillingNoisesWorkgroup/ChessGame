@@ -50,6 +50,11 @@ int login_entry_find(char* login, login_entry** l){
 	else return -1;
 }
 
+int isadmin(login_entry* l){
+	if(l->id == ADMIN_ID) return 1;
+	else return 0;
+}
+
 void print_passwords(){
 	int i;
 	login_entry *l;
