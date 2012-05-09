@@ -23,8 +23,8 @@ typedef struct session_rec {
 	int socket;
 } session_rec;
 
-typedef void *(*callback_remote_t)(int ptype, int plen, void *payload);
-typedef void *(*callback_local_t)(char *buff, int len);
+typedef void (*callback_remote_t)(int ptype, int plen, void *payload);
+typedef void (*callback_local_t)(char *buff, int len);
 
 // This is NOT a real reactor.
 typedef struct reactor_rec {
