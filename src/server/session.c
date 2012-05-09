@@ -10,6 +10,7 @@
 #include "memory_dump.h"
 #include "shutdown_server.h"
 #include "logging.h"
+#include "game_description.h"
 
 char* passw_to_hex(unsigned char * passw, int size){
 	char* hex;
@@ -30,7 +31,13 @@ char* passw_to_hex(unsigned char * passw, int size){
 void send_auth_response(int dst, int val){
 	packet_auth_response packet;
 	packet.response = (uint8_t)val;
-	packet_send(dst, (packet_type_t)PACKET_AUTH_RESPONSE, (packet_length_t)sizeof(packet), &packet);
+	packet_send(dst, PACKET_AUTH_RESPONSE, sizeof(packet), &packet);
+}
+
+void send_game_creation_response(int dst, int val){
+	packet_game_creation_response packet;
+	packet.gameid = htonl((uint32_t)val);
+	packet_send(dst, PACKET_GAME_CREATION_RESPONSE, sizeof(packet), &packet);
 }
 
 void destroy_session(session* s){
@@ -52,18 +59,17 @@ login_entry* reg_new_user(packet_auth_request* packet, int id, char* hex){
 
 void authentication(session *s, packet_auth_request *packet){
 	login_entry *login;
-	int last_id;
 	char *hex;
 	
 	pthread_mutex_lock(&current_lobby.logins->locking_mutex);
 	
-	if( current_lobby.logins->size == 0) last_id = 0;
+	if( current_lobby.logins->size == 0) last_login_id = 1;
 	
 	hex = passw_to_hex(packet->passw, ENCRYPTED_PASSWORD_LENGTH);
 	
 	if( (login_entry_find(packet->login, &login)) == -1){
 		print_log(s->thread_info, "Authentication success with new user registration");
-		login = reg_new_user(packet, last_id++, hex);
+		login = reg_new_user(packet, last_login_id++, hex);
 		send_auth_response(s->client_socket, 1);
 		
 		pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
@@ -89,6 +95,30 @@ void authentication(session *s, packet_auth_request *packet){
 	}
 	free(hex);
 	pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
+}
+
+int create_game(session* s, packet_game_creation_request *packet){
+	game_description* game_d;
+	char* name;
+	
+	if((name = malloc(GAME_NAME_MAXSIZE)) == NULL){
+		perror("malloc");
+		exit(1);
+	}
+	
+	strcpy(name, packet->name);
+	if(current_lobby.games->size == 0) last_game_id = 1;
+	
+	pthread_mutex_lock(&current_lobby.games->locking_mutex);
+	
+	game_d = init_game_description(last_game_id++, name);
+	dynamic_array_add(current_lobby.games, game_d);
+	
+	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
+	
+	print_log(s->thread_info, "Game with id %d was created", game_d->id);
+	
+	return game_d->id;
 }
 
 void* Session(void *arg){
@@ -126,6 +156,10 @@ void* Session(void *arg){
 				pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 				shutdown_server();
 			}
+			break;
+		case PACKET_GAME_CREATION_REQUEST:
+			print_log(current_session->thread_info, "Got game creation packet");
+			send_game_creation_response(current_session->client_socket, create_game(current_session, data));
 			break;
 		}
 		free(data);

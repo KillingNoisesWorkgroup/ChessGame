@@ -5,7 +5,7 @@
 
 #include "dynamic_array.h"
 
-#define ADMIN_ID 0
+#define ADMIN_ID 1
 
 typedef struct login_entry{
 	char *login;
@@ -14,7 +14,7 @@ typedef struct login_entry{
 } login_entry;
 
 FILE* passwd;
-int last_id;
+int last_login_id;
 
 login_entry* init_login_entry(int id);
 int login_entry_find(char* login, login_entry** l);
