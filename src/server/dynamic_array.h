@@ -7,6 +7,7 @@ typedef struct dynamic_array{
 	char **data;
 	int size;
 	int size_of_data;
+	pthread_mutex_t locking_mutex;
 } dynamic_array;
 
 dynamic_array* init_dynamic_array(int size_of_data);

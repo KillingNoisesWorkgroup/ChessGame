@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <pthread.h>
 
 #include "dynamic_array.h"
 
@@ -16,6 +17,7 @@ dynamic_array* init_dynamic_array(int size_of_data){
 		perror("malloc");
 		exit(1);
 	}
+	pthread_mutex_init(&arr->locking_mutex, NULL);
 	return arr;
 }
 
