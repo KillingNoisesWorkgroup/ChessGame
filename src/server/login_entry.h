@@ -14,6 +14,7 @@ typedef struct login_entry{
 } login_entry;
 
 FILE* passwd;
+int last_id;
 
 login_entry* init_login_entry(int id);
 int login_entry_find(char* login, login_entry** l);

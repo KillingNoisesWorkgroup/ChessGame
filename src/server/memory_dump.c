@@ -7,12 +7,14 @@
 #include "login_entry.h"
 
 void read_logins_dump(FILE *logins){
-	uint32_t count, login_length, passw_length;
-	int i, id;
+	uint32_t count, login_length, passw_length, id;
+	int i;
 	login_entry *new_login;
 	fread((void*)&count, sizeof(count), 1, logins);
-	for(i = 0, id = 0; i < count; i++){
-		new_login = init_login_entry(id++);
+	fread((void*)&last_id, sizeof(last_id), 1, logins);
+	for(i = 0; i < count; i++){
+		fread((void*)&id, sizeof(id), 1, logins);
+		new_login = init_login_entry(id);
 		fread((void*)&login_length, sizeof(login_length), 1, logins);
 		fread((void*)(new_login->login), login_length, 1, logins);
 		new_login->login[login_length] = 0;
@@ -44,8 +46,10 @@ void create_logins_dump(FILE *logins){
 	login_entry *login;
 	count = current_lobby.logins->size;
 	fwrite((const void*)&count, sizeof(count), 1, logins);
+	fwrite((const void*)&last_id, sizeof(last_id), 1, logins);
 	for(i = 0; i < count; i++){
 		login = (login_entry*)(current_lobby.logins->data)[i];
+		fwrite((const void*)&login->id, sizeof(login->id), 1, logins);
 		login_length = strlen(login->login);
 		fwrite((const void*)&login_length, sizeof(login_length), 1, logins);
 		fwrite((const void*)login->login, login_length, 1, logins);

@@ -58,15 +58,12 @@ void authentication(session *s, packet_auth_request *packet){
 	pthread_mutex_lock(&current_lobby.logins->locking_mutex);
 	
 	if( current_lobby.logins->size == 0) last_id = 0;
-	else {
-		last_id = ((login_entry*)((current_lobby.logins)->data[current_lobby.logins->size - 1]))->id;
-	}
 	
 	hex = passw_to_hex(packet->passw, ENCRYPTED_PASSWORD_LENGTH);
 	
 	if( (login_entry_find(packet->login, &login)) == -1){
 		print_log(s->thread_info, "Authentication success with new user registration");
-		login = reg_new_user(packet, last_id+1, hex);
+		login = reg_new_user(packet, last_id++, hex);
 		send_auth_response(s->client_socket, 1);
 		
 		pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
