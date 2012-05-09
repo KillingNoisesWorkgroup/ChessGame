@@ -1,6 +1,8 @@
 // All data in this file is packed for lowest space
 // Do NOT include this file manually! Include networking.h instead!
 
+#define MAX_PACKET_STRING_LENGTH 256
+
 /* PACKET C2S - Auth Request */
 
 #define PLAYER_NAME_MAXSIZE 256
@@ -33,8 +35,7 @@ typedef struct packet_server_shutdown{
 
 #define PACKET_GAME_CREATION_REQUEST 4
 typedef struct packet_game_creation_request{
-	char name;
-	uint8_t spect_num;
+	char name[MAX_PACKET_STRING_LENGTH];
 } packet_game_creation_request;
 
 
@@ -42,5 +43,5 @@ typedef struct packet_game_creation_request{
 
 #define PACKET_GAME_CREATION_RESPONSE 5
 typedef struct packet_game_creation_response{
-	uint8_t response;
+	uint32_t gameid;
 } packet_game_creation_response;
