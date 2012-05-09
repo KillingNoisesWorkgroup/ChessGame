@@ -10,7 +10,7 @@
 
 #include "networking.h"
 
-void packet_send(int dst, packet_type_t packet_type, packet_length_t length, void *raw_data){
+int packet_send(int dst, packet_type_t packet_type, packet_length_t length, void *raw_data){
 	char *data;
 	char *p; // just a helper pointer
 	
@@ -35,6 +35,7 @@ void packet_send(int dst, packet_type_t packet_type, packet_length_t length, voi
 	}
 	
 	free(data);
+	return 1;
 }
 
 int packet_recv(int src, packet_type_t *packet_type, packet_length_t *length, void **data){
