@@ -120,14 +120,13 @@ void* Session(void *arg){
 			break;
 		case PACKET_SERVER_SHUTDOWN:
 			pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
-			if( current_session->state != SESSION_STATE_WORK || isadmin(current_session->player)){
+			if(!(current_session->state != SESSION_STATE_WORK || isadmin(current_session->player))){
 					print_log(current_session->thread_info, "Got server shutdown packet, admin authentication error");
 					pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 					destroy_session(current_session);
-				}
-			else {
+			} else {
 				print_log(current_session->thread_info, "Got server shutdown packet");
-				pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
+				pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 				shutdown_server();
 			}
 			break;
@@ -138,7 +137,7 @@ void* Session(void *arg){
 
 void create_session(int client_socket, struct sockaddr_in *client_addres){
 	session *new_session;
-	if( (new_session = malloc(sizeof(session))) == NULL){
+	if((new_session = malloc(sizeof(session))) == NULL){
 		perror("malloc");
 		exit(1);
 	}
