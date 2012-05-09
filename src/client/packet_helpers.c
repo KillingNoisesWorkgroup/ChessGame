@@ -6,7 +6,5 @@
 #include "../shared/networking.h"
 
 int send_shutdown(int dst) {
-	packet_server_shutdown packet;
-	packet_send(dst, PACKET_SERVER_SHUTDOWN, sizeof packet, &packet);
-	return 1;
+	return packet_send(dst, PACKET_SERVER_SHUTDOWN, 0, NULL);
 }
