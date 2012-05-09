@@ -31,11 +31,11 @@ typedef struct packet_server_shutdown{
 
 /* PACKET C2S - Game creation request */
 
-#define PACKET_GAME_CREATE_REQUEST 4
-typedef struct packet_game_create_request{
+#define PACKET_GAME_CREATION_REQUEST 4
+typedef struct packet_game_creation_request{
 	char name;
 	uint8_t spect_num;
-}
+} packet_game_creation_request;
 
 
 /* PACKET S2C - Game creation response */
@@ -43,4 +43,4 @@ typedef struct packet_game_create_request{
 #define PACKET_GAME_CREATION_RESPONSE 5
 typedef struct packet_game_creation_response{
 	uint8_t response;
-}
+} packet_game_creation_response;

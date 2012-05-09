@@ -33,9 +33,10 @@ void send_auth_response(int dst, int val){
 	packet_send(dst, (packet_type_t)PACKET_AUTH_RESPONSE, (packet_length_t)sizeof(packet), &packet);
 }
 
-void kick(session *s){
+void destroy_session(session* s){
+	//free(s->client_addres);
 	close(s->client_socket);
-	print_log(s->thread_info, "Thread terminated");
+	print_log(s->thread_info, "Session terminated");
 	pthread_exit(NULL);
 }
 
@@ -58,7 +59,7 @@ void authentication(session *s, packet_auth_request *packet){
 		last_id = ((login_entry*)((current_lobby.logins)->data[current_lobby.logins->size - 1]))->id;
 	}
 	hex = passw_to_hex(packet->passw, ENCRYPTED_PASSWORD_LENGTH);
-	if( (login = login_entry_find(packet->login)) == NULL){
+	if( (login_entry_find(packet->login, &login)) == -1){
 		print_log(s->thread_info, "Authentication success with new user registration");
 		login = reg_new_user(packet, last_id+1, hex);
 		send_auth_response(s->client_socket, 1);
@@ -74,7 +75,7 @@ void authentication(session *s, packet_auth_request *packet){
 			print_log(s->thread_info, "Authentication failure");
 			send_auth_response(s->client_socket, 0);
 			free(hex);
-			kick(s);
+			destroy_session(s);
 		}
 	}
 	free(hex);
@@ -92,10 +93,9 @@ void* Session(void *arg){
 	
 	while(1){
 		if( !packet_recv(current_session->client_socket, &packet_type, &length, &data)){
-			kick(current_session);
-			break;
+			print_log(current_session->thread_info, "Client disconnected");
+			destroy_session(current_session);
 		}
-		
 		//packet_debug_full(packet_type, length, data);
 		
 		switch(packet_type){
@@ -104,8 +104,14 @@ void* Session(void *arg){
 			break;
 		case PACKET_SERVER_SHUTDOWN:
 			if( current_session->state != SESSION_STATE_WORK ||
-				current_session->player->id != ADMIN_ID) kick(current_session);
-			else shutdown_server();
+				current_session->player->id != ADMIN_ID){
+					print_log(current_session->thread_info, "Got server shutdown packet, admin authentication error");
+					destroy_session(current_session);
+				}
+			else {
+				print_log(current_session->thread_info, "Got server shutdown packet");
+				shutdown_server();
+			}
 			break;
 		}
 		free(data);

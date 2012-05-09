@@ -24,17 +24,30 @@ login_entry* init_login_entry(int id){
 	return log_e;
 }
 
-login_entry* login_entry_find(char* login){
+void free_login_entry(login_entry* l){
+	int pos;
+	login_entry *l1;
+	pos = login_entry_find(l->login, &l1);
+	dynamic_array_delete_at(current_lobby.logins, pos);
+	free(l->login);
+	free(l->passw);
+	free(l);
+}
+
+int login_entry_find(char* login, login_entry** l){
 	login_entry* log_e;
-	int i;
+	int i, b = 0;
 	log_e = NULL;
 	for(i = 0; i < current_lobby.logins->size; i++){
 		if( strcmp( ((login_entry*)(current_lobby.logins->data[i]))->login, login) == 0){
 			log_e = (login_entry*)(current_lobby.logins->data[i]);
+			b = 1;
 			break;
 		}
 	}
-	return log_e;
+	*l = log_e;
+	if(b) return i;
+	else return -1;
 }
 
 void print_passwords(){

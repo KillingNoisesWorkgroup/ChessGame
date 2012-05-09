@@ -26,17 +26,22 @@ void dynamic_array_add(dynamic_array* arr, void* data){
 			exit(1);
 		}
 	}
-	arr->data[arr->size++] = data;
+	if( (arr->data[arr->size] = malloc(arr->size_of_data)) == NULL){
+		perror("malloc");
+		exit(1);
+	}
+	memcpy(arr->data[arr->size++], data, arr->size_of_data);
 }
 
 void dynamic_array_delete_at(dynamic_array* arr, int n){
-	memmove(arr->data[n], arr->data[arr->size - 1], arr->size_of_data);
-	arr->size --;
-	if(arr->size % 10 == 0){
+	printf("ololo %d\n", arr->size);
+	memmove(arr->data[n],
+		arr->data[--(arr->size)], arr->size_of_data);
+	printf("ololo1 %d\n", arr->size);
+	if(arr->size % 10 == 0 && arr->size){
 		if( (arr->data = realloc(arr->data, sizeof(char*)*(arr->size-DYNAMIC_ARRAY_SIZE_INC))) == NULL){
 			perror("realloc");
 			exit(1);
 		}
 	}
 }
-

@@ -25,6 +25,6 @@ void create_session(int client_socket, struct sockaddr_in *client_addres);
 void authentication(session *s, packet_auth_request *packet);
 void send_auth_response(int dst, int val);
 char* passw_to_hex(unsigned char * passw, int size);
-void kick(session *s);
+void destroy_session(session *s);
 
 #endif

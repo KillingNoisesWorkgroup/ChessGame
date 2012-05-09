@@ -12,5 +12,6 @@ typedef struct lobby{
 
 lobby current_lobby;
 
-#endif
+void create_lobby();
 
+#endif
