@@ -19,7 +19,7 @@ typedef struct packet_auth_request{
 
 #define PACKET_AUTH_RESPONSE 2
 typedef struct packet_auth_response{
-	uint8_t response;
+	uint32_t userid;
 } packet_auth_response;
 
 
@@ -63,7 +63,8 @@ typedef struct packet_game_attach_request{
 
 /* PACKET S2C - Game attach response */
 
-#define PACKET_GAME_ATTACH_RESPONSE 7
-typedef struct packet_game_attach_response{
-	uint8_t attached_as;
-} packet_game_attach_response;
+#define PACKET_GAME_ATTACH 7
+typedef struct packet_game_attach{
+	uint32_t gameid;
+	uint8_t attached_as_team;
+} packet_game_attac;
