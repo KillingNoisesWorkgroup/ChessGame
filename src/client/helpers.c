@@ -17,12 +17,12 @@ int get_string(char **buffer, size_t *length) {
 	int read;
 	
 	*buffer = NULL;
-	if((read = getline(buffer, length, stdin)) == -1) {
+	if((*length = getline(buffer, &read, stdin)) == -1) {
 		return 0;		
 	}
 	
 	// We must guarantee null-terminated string
-	if((*buffer)[*length - 1] != '\0') {
+	if((*buffer)[*length] != '\0') {
 		perror("getline");
 		exit(EXIT_FAILURE);
 	}
