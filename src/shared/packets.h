@@ -45,3 +45,16 @@ typedef struct packet_game_creation_request{
 typedef struct packet_game_creation_response{
 	uint32_t gameid;
 } packet_game_creation_response;
+
+
+/* PACKET C2S - Game attach request */
+
+#define TEAM_WHITE       1
+#define TEAM_BLACK       2
+#define TEAM_SPEACTATORS 3
+
+#define PACKET_GAME_ATTACH_REQUEST 6
+typedef struct packet_game_attach_request{
+	uint32_t gameid;
+	uint8_t team;
+} packet_game_attach_request;
