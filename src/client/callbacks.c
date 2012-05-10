@@ -38,7 +38,7 @@ void cb_remote_new_game_autoconnect(int ptype, int plen, void *payload) {
 	}
 	
 	int gameid = ntohl(((packet_game_creation_response*)payload)->gameid);
-	if(gameid < 0) {
+	if(gameid <= 0) {
 		output("Unable to create new game, error code is %d\n", gameid);
 		return;
 	}

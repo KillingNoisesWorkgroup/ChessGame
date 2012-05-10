@@ -137,10 +137,12 @@ void authenticate() {
 	packet_length_t plen;
 	void *payload;
 	
-	if(!packet_recv(session.socket, &ptype, &plen, &payload) || ptype != PACKET_AUTH_RESPONSE || !((packet_auth_response*)payload)->response) {
+	if(!packet_recv(session.socket, &ptype, &plen, &payload) || ptype != PACKET_AUTH_RESPONSE || ntohl(((packet_auth_response*)payload)->userid) <= 0) {
 		fprintf(stderr, "Unable to authenticate!\n");
 		exit(EXIT_FAILURE);
 	}
+	
+	session.userid = ntohl(((packet_auth_response*)payload)->userid);
 }
 
 

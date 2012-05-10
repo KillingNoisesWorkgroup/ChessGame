@@ -20,6 +20,8 @@ typedef struct session_rec {
 	char login[PLAYER_NAME_MAXSIZE];
 	unsigned char password_encrypted[ENCRYPTED_PASSWORD_LENGTH];
 	
+	uint32_t userid;
+	
 	int socket;
 } session_rec;
 
