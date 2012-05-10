@@ -43,7 +43,8 @@ void cb_remote_new_game_autoconnect(int ptype, int plen, void *payload) {
 		return;
 	}
 	
-	output("New game with ID %d was created!\n", gameid);
+	output("New game with ID %d was created, attaching...\n", gameid);
+	send_game_attach_request(session.socket, gameid, TEAM_AUTO);
 }
 
 void cb_local_default(char *buff, int len) {	

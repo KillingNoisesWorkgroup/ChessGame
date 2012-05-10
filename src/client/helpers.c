@@ -14,7 +14,7 @@ void print_prompt() {
 }
 
 int get_string(char **buffer, size_t *length) {
-	int read;
+	size_t read;
 	
 	*buffer = NULL;
 	if((*length = getline(buffer, &read, stdin)) == -1) {

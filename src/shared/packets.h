@@ -49,6 +49,7 @@ typedef struct packet_game_creation_response{
 
 /* PACKET C2S - Game attach request */
 
+#define TEAM_AUTO        0
 #define TEAM_WHITE       1
 #define TEAM_BLACK       2
 #define TEAM_SPEACTATORS 3
