@@ -59,3 +59,11 @@ typedef struct packet_game_attach_request{
 	uint32_t gameid;
 	uint8_t team;
 } packet_game_attach_request;
+
+
+/* PACKET S2C - Game attach response */
+
+#define PACKET_GAME_ATTACH_RESPONSE 7
+typedef struct packet_game_attach_response{
+	uint8_t attached_as;
+} packet_game_attach_response;
