@@ -3,6 +3,8 @@
 
 #include "game_description.h"
 #include "lobby.h"
+#include "dynamic_array.h"
+#include "login_entry.h"
 
 game_description* init_game_description(int id, char *name){
 	game_description* g;
@@ -13,6 +15,7 @@ game_description* init_game_description(int id, char *name){
 	g->name = name;
 	g->white = NULL;
 	g->black = NULL;
+	g->spectators = init_dynamic_array(sizeof(login_entry));
 	g->id = id;
 	g->state = GAME_STATE_WAITING_FOR_PLAYERS;
 	return g;

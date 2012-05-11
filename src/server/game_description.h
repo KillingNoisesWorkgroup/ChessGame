@@ -16,6 +16,7 @@ typedef struct game_description{
 	char* name;
 	login_entry* white;
 	login_entry* black;
+	dynamic_array* spectators;
 } game_description;
 
 int last_game_id;
