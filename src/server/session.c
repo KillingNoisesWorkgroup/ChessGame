@@ -43,7 +43,7 @@ void send_game_creation_response(int dst, int val){
 void send_game_attach_response(int dst, uint32_t gameid, uint8_t team){
 	packet_game_attach packet;
 	packet.gameid = htonl(gameid);
-	packet.attached_as_team = htonl(team);
+	packet.attached_as_team = team;
 	packet_send(dst, PACKET_GAME_ATTACH, sizeof(packet), &packet);
 }
 
@@ -141,22 +141,22 @@ int attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 	
 	switch(*team){
 	case TEAM_AUTO:
-		printf("ololo\n");
-		if(g->white != NULL){
-			g->black = s->player;
-			*team = TEAM_BLACK;
-			printf("ololo\n");
-			break;
-		}
-		if(g->black != NULL){
+		printf("ololo white is %p, black is %p\n", g->white, g->black);
+		if(g->white == NULL){
 			g->white = s->player;
 			*team = TEAM_WHITE;
-			printf("ololo\n");
+			printf("ololo2\n");
+			break;
+		}
+		if(g->black == NULL){
+			g->black = s->player;
+			*team = TEAM_BLACK;
+			printf("ololo1\n");
 		}
 		else{
 			dynamic_array_add(g->spectators, (void*)s->player);
 			*team = TEAM_SPECTATORS;
-			printf("ololo\n");
+			printf("ololo3\n");
 		}
 		break;
 	case TEAM_WHITE:
