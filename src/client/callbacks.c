@@ -18,7 +18,9 @@
 // Default callbacks
 
 void cb_remote_default(int ptype, int plen, void *payload) {
-	on else {
+	on packet(PACKET_GAME_ATTACH) {
+		output("Server wanted us to attach to game %d!\n", ntohl(((packet_game_attach*)(payload))->gameid));
+	} else {
 		output("Unknown packet!\n");
 		packet_debug(ptype, plen, payload);
 	}
