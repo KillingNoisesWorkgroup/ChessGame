@@ -52,7 +52,7 @@ typedef struct packet_game_creation_response{
 #define TEAM_AUTO        0
 #define TEAM_WHITE       1
 #define TEAM_BLACK       2
-#define TEAM_SPEACTATORS 3
+#define TEAM_SPECTATORS  3
 
 #define PACKET_GAME_ATTACH_REQUEST 6
 typedef struct packet_game_attach_request{
@@ -67,4 +67,4 @@ typedef struct packet_game_attach_request{
 typedef struct packet_game_attach{
 	uint32_t gameid;
 	uint8_t attached_as_team;
-} packet_game_attac;
+} packet_game_attach;
