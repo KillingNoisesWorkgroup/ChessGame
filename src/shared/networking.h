@@ -1,5 +1,5 @@
-#ifndef H_SERVER_NETWORKING_GUARD
-#define H_SERVER_NETWORKING_GUARD
+#ifndef H_SHARED_NETWORKING_GUARD
+#define H_SHARED_NETWORKING_GUARD
 
 #include <stdint.h>
 #include <openssl/md5.h>
