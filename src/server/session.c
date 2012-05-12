@@ -76,23 +76,23 @@ int authentication(session *s, packet_auth_request *packet){
 	hex = passw_to_hex(packet->passw, ENCRYPTED_PASSWORD_LENGTH);
 	
 	if( (login_entry_find(packet->login, &login)) == -1){
-		print_log(s->thread_info, "Authentication success with new user registration");
 		login = reg_new_user(packet, last_login_id++, hex);
 		
 		pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
 		s->state = SESSION_STATE_WORK;
 		s->player = login;
 		pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
+		print_log(s->thread_info, "User %s(%d) was registrated", login->login, login->id);
 	} else {
 		if( strcmp(login->passw, hex) == 0){
-			print_log(s->thread_info, "Authentication success");
+			print_log(s->thread_info, "User %s(%d) successfully authenticated", login->login, login->id);
 			
 			pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
 			s->state = SESSION_STATE_WORK;
 			s->player = login;
 			pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 		} else {
-			print_log(s->thread_info, "Authentication failure");
+			print_log(s->thread_info, "Authentication of user %s(%d) failed", login->login, login->id);
 			free(hex);
 			pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
 			b = 0;
@@ -141,22 +141,18 @@ int attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 	
 	switch(*team){
 	case TEAM_AUTO:
-		printf("ololo white is %p, black is %p\n", g->white, g->black);
 		if(g->white == NULL){
 			g->white = s->player;
 			*team = TEAM_WHITE;
-			printf("ololo2\n");
 			break;
 		}
 		if(g->black == NULL){
 			g->black = s->player;
 			*team = TEAM_BLACK;
-			printf("ololo1\n");
 		}
 		else{
 			dynamic_array_add(g->spectators, (void*)s->player);
 			*team = TEAM_SPECTATORS;
-			printf("ololo3\n");
 		}
 		break;
 	case TEAM_WHITE:
@@ -190,7 +186,7 @@ void* Session(void *arg){
 	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
 	snprintf(current_session->thread_info, sizeof current_session->thread_info, "session %0lX", current_session->thread);
 	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
-	print_log(current_session->thread_info, "Created new thread");
+	print_log("main", "Created %s thread", current_session->thread_info);
 	
 	while(1){
 		if( !packet_recv(current_session->client_socket, &packet_type, &length, &data)){
@@ -224,13 +220,12 @@ void* Session(void *arg){
 		case PACKET_GAME_ATTACH_REQUEST:
 			gameid = ntohl(((packet_game_attach_request*)data)->gameid);
 			team = ((packet_game_attach_request*)data)->team;
-			print_log(current_session->thread_info, "Got game attach packet gameid = %d, team = %d",
-			gameid, team);
+			print_log(current_session->thread_info, "Got game attach packet gameid = %d, team = %d", gameid, team);
 			attach_to_game(current_session, &gameid, &team);
 			send_game_attach_response(current_session->client_socket, gameid, team);
 			break;
 		default:
-			print_log(current_session->thread_info, "Got unknown packet");
+			print_log(current_session->thread_info, "Got unknown packet(%d)", packet_type);
 			break;
 		}
 		free(data);
