@@ -6,17 +6,20 @@
 #include "dynamic_array.h"
 #include "login_entry.h"
 
-game_description* init_game_description(int id, char *name){
+game_description* init_game_description(int id){
 	game_description* g;
 	if((g = malloc(sizeof(game_description))) == NULL){
 		perror("malloc");
 		exit(1);
 	}
-	g->name = name;
+	if((g->name = malloc(GAME_NAME_MAXSIZE + 1)) == NULL){
+		perror("malloc");
+		exit(1);
+	}
 	g->white = NULL;
 	g->black = NULL;
 	g->spectators = init_dynamic_array(sizeof(login_entry));
-	g->id = id;
+	g->id = (uint32_t)id;
 	g->state = GAME_STATE_WAITING_FOR_PLAYERS;
 	return g;
 }
@@ -26,7 +29,7 @@ void game_description_set_player(game_description* g, login_entry* l, int color)
 	if(color == PLAYER_BLACK) g->black = l;
 }
 
-int game_description_find(int id, game_description** g){
+int game_description_find(uint32_t id, game_description** g){
 	game_description* game_d;
 	int i, b = 0;
 	game_d = NULL;
