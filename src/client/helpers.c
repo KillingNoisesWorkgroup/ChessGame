@@ -30,17 +30,39 @@ int get_string(char **buffer, size_t *length) {
 	return 1;
 }
 
-int check_command(char *str, const char *command) {
-	if(str == NULL || command == NULL)
-		return 0;
+tokenized_string_t tokenize_string(char *str) {
+	tokenized_string_t value;
+	int i;
 	
-	for(; *command != '\0' && 
-			*str != '\0' && 
-			*str != ' ' && 
-			*str != '\t' && 
-			*str != '\n' && 
-			*command == *str; str++, command++);
-	return *command == '\0';
+	value.len = strlen(str);
+	if((value.str = malloc(value.len + 1)) == NULL) {
+		perror("malloc");
+		exit(EXIT_FAILURE);
+	}
+			
+	for(i = 0; i < value.len; i++) {
+		if(str[i] == ' ' || str[i] == '\n' || str[i] == '\t')
+			value.str[i] = '\0';
+		else
+			value.str[i] = str[i];
+	}
+	value.str[value.len] = '\0';
+	
+	return value; 
+}
+
+char * tokget(tokenized_string_t str, int arg) {
+	int i, n;
+	
+	n = 0;
+	for(i = 0; i < str.len; i++) {
+		if(n >= arg)
+			return str.str + i;
+		if(str.str[i] == '\0')
+			n++;
+	}
+	
+	return NULL; 
 }
 
 int output(const char *template, ...) {

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <arpa/inet.h> // for htonl() and etc
 
 #include "client.h"
@@ -9,8 +10,10 @@
 
 // Some helpers to fancy up the code
 #define on if(0){}
-#define command(cmd) else if(check_command(buff, (cmd)))
+#define command(tested_command) else if(strcmp(tokget(cmd, 0), (tested_command)) == 0)
 #define packet(type) else if(ptype == type)
+#define tokenizer_init tokenized_string_t cmd = tokenize_string(buff);
+#define tokenizer_free free(cmd.str);
 
 // Variable names must be all the same as in the prototype for 
 // fancy helpers to work properly
@@ -49,20 +52,32 @@ void cb_remote_new_game_autoconnect(int ptype, int plen, void *payload) {
 	send_game_attach_request(session.socket, gameid, TEAM_AUTO);
 }
 
-void cb_local_default(char *buff, int len) {	
+void cb_local_default(char *buff, int len) {
+	tokenizer_init;	
+	
 	on command("help") {
 		
 		output("Commands list:\n");
-		output("  g_new\n");
+		output("  g_attach gameid\n");
+		output("  g_new [name]\n");
 		output("  help\n");
 		output("  shutdown\n");
 		output("  exit\n");
 	
+	} command("g_attach") {
+		
+		if(!tokget(cmd, 1)) {			
+			output("Pass gameid as an argument!\n");
+		} else {
+			output("Attaching to game...\n");
+			send_game_attach_request(session.socket, atoi(tokget(cmd, 1)), TEAM_AUTO);
+		}
+		
 	} command("g_new") {
 		
 		output("Creating new game...\n");
 		reactor.callback_remote = &cb_remote_new_game_autoconnect;
-		send_game_creation_request(session.socket, session.login);
+		send_game_creation_request(session.socket, tokget(cmd, 1) ? tokget(cmd, 1) : session.login);
 		
 	} command("shutdown") {
 	
@@ -77,4 +92,6 @@ void cb_local_default(char *buff, int len) {
 	} else {
 		output("Unknown command!\n");
 	}
+	
+	tokenizer_free;
 }
