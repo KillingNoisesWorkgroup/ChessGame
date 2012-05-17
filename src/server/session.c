@@ -108,11 +108,6 @@ int create_game(session* s, packet_game_creation_request *packet){
 	game_description* game_d;
 	char* name;
 	
-	if((name = malloc(GAME_NAME_MAXSIZE)) == NULL){
-		perror("malloc");
-		exit(1);
-	}
-	
 	strcpy(name, packet->name);
 	if(current_lobby.games->size == 0){
 		last_game_id = 1;
@@ -120,11 +115,12 @@ int create_game(session* s, packet_game_creation_request *packet){
 	pthread_mutex_lock(&current_lobby.games->locking_mutex);
 	
 	game_d = init_game_description(last_game_id++);
+	game_d->name = packet->name;
 	dynamic_array_add(current_lobby.games, game_d);
 	
 	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
 	
-	print_log(s->thread_info, "Game with id %d was created", game_d->id);
+	print_log(s->thread_info, "Game %s(%d) was created", game_d->name, game_d->id);
 	
 	return game_d->id;
 }
