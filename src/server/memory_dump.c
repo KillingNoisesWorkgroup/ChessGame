@@ -26,10 +26,11 @@ void read_logins_dump(FILE *logins){
 }
 
 void read_games_dump(FILE *games){
-	uint32_t count, spect_size, white_id, black_id;
-	uint 8_t white_ex, black_ex;
-	int i, j, name_size, id;
+	uint32_t count, white_id, black_id;
+	uint8_t white_ex, black_ex;
+	int i, j, name_size, id, spect_id;
 	game_description *g;
+	login_entry *spectator;
 	fread(&count, sizeof(count), 1, games);
 	fread(&last_game_id, sizeof(last_game_id), 1, games);
 	for(i = 0; i < count; i++){
@@ -43,18 +44,19 @@ void read_games_dump(FILE *games){
 		fread(&black_ex, sizeof(black_ex), 1, games);
 		if(white_ex){
 			fread(&white_id, sizeof(white_id), 1, games);
-			g->white = login_entry_find(current_lobby.logins, 
+			login_entry_find_id(white_id, &g->white);
 		}
-		if(g->black == NULL) black_ex = 0;
-		else black_ex = 1;
-		fwrite(&white_ex, sizeof(white_ex), 1, games);
-		fwrite(&black_ex, sizeof(black_ex), 1, games);
-		if(white_ex) fwrite(&g->white->id, sizeof(g->white->id), 1, games);
-		if(black_ex) fwrite(&g->black->id, sizeof(g->black->id), 1, games);
-		spect_size =  g->spectators->size;
-		for(j = 0; j < spect_size; j++)
-			fwrite(&((login_entry*)(g->spectators->data[j])->id,
-			  sizeof((login_entry*)(g->spectators->data[j])->id), 1, games);
+		if(black_ex){
+			fread(&black_id, sizeof(black_id), 1, games);
+			login_entry_find_id(black_id, &g->black);
+		}
+		fread(&g->spectators->size, sizeof(g->spectators->size), 1, games);
+		for(j = 0; j < g->spectators->size; j++){
+			fread(&spect_id, sizeof(spect_id), 1, games);
+			login_entry_find_id(spect_id, &spectator);
+			dynamic_array_add(g->spectators, spectator);
+		}
+		dynamic_array_add(current_lobby.games, g);
 	}
 }
 
@@ -91,7 +93,7 @@ void create_logins_dump(FILE *logins){
 
 void create_games_dump(FILE *games){
 	uint32_t count, spect_size;
-	uint 8_t white_ex, black_ex;
+	uint8_t white_ex, black_ex;
 	int i, j, name_length;
 	game_description *g;
 	count = current_lobby.games->size;
@@ -113,9 +115,10 @@ void create_games_dump(FILE *games){
 		if(white_ex) fwrite(&g->white->id, sizeof(g->white->id), 1, games);
 		if(black_ex) fwrite(&g->black->id, sizeof(g->black->id), 1, games);
 		spect_size =  g->spectators->size;
+		fwrite(&spect_size, sizeof(spect_size), 1, games);
 		for(j = 0; j < spect_size; j++)
-			fwrite(&((login_entry*)(g->spectators->data[j])->id,
-			  sizeof((login_entry*)(g->spectators->data[j])->id), 1, games);
+			fwrite(&((login_entry*)(g->spectators->data[j]))->id,
+			  sizeof(((login_entry*)(g->spectators->data[j]))->id), 1, games);
 	}
 }
 

@@ -14,7 +14,7 @@
 
 typedef struct game_description{
 	uint8_t state;
-	uin32_t id;
+	uint32_t id;
 	char* name;
 	login_entry* white;
 	login_entry* black;

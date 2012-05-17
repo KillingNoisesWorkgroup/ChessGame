@@ -50,6 +50,22 @@ int login_entry_find(char* login, login_entry** l){
 	else return -1;
 }
 
+int login_entry_find_id(int id, login_entry** l){
+	login_entry* log_e;
+	int i, b = 0;
+	log_e = NULL;
+	for(i = 0; i < current_lobby.logins->size; i++){
+		if( ((login_entry*)(current_lobby.logins->data[i]))->id == id){
+			log_e = (login_entry*)(current_lobby.logins->data[i]);
+			b = 1;
+			break;
+		}
+	}
+	*l = log_e;
+	if(b) return i;
+	else return -1;
+}
+
 int isadmin(login_entry* l){
 	if(l->id == ADMIN_ID) return 1;
 	else return 0;
