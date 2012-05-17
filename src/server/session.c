@@ -60,7 +60,6 @@ login_entry* reg_new_user(packet_auth_request* packet, int id, char* hex){
 	strcpy(login->login, packet->login);
 	strncpy(login->passw, hex, strlen(hex));
 	dynamic_array_add(current_lobby.logins, login);
-	create_memory_dump();
 	return login;
 }
 
@@ -115,11 +114,12 @@ int create_game(session* s, packet_game_creation_request *packet){
 	}
 	
 	strcpy(name, packet->name);
-	if(current_lobby.games->size == 0) last_game_id = 1;
-	
+	if(current_lobby.games->size == 0){
+		last_game_id = 1;
+	}
 	pthread_mutex_lock(&current_lobby.games->locking_mutex);
 	
-	game_d = init_game_description(last_game_id++, name);
+	game_d = init_game_description(last_game_id++);
 	dynamic_array_add(current_lobby.games, game_d);
 	
 	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
