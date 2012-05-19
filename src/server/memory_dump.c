@@ -100,7 +100,7 @@ void create_games_dump(FILE *games){
 	fwrite(&count, sizeof(count), 1, games);
 	fwrite(&last_game_id, sizeof(last_game_id), 1, games);
 	for(i = 0; i < count; i++){
-		g = (game_description*)(current_lobby.games->data)[i];
+		g = (game_description*)current_lobby.games->data[i];
 		fwrite(&g->id, sizeof(g->id), 1, games);
 		name_length = strlen(g->name);
 		fwrite(&name_length, sizeof(name_length), 1, games);

@@ -6,7 +6,7 @@
 
 #define GAME_STATE_WAITING_FOR_PLAYERS 0
 
-#define GAME_NAME_MAXSIZE 256
+#define GAME_NAME_MAXSIZE 64
 
 #include <stdint.h>
 
