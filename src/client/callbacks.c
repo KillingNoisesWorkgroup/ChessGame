@@ -38,10 +38,13 @@ void cb_remote_ingame(int ptype, int plen, void *payload) {
 void cb_remote_default(int ptype, int plen, void *payload) {
 	on packet(PACKET_GAME_ATTACH) {
 	
-		int gameid = ntohl(((packet_game_attach*)(payload))->gameid);
+		packet_game_attach * p = payload;
+		int gameid = ntohl(p->gameid);
+		
 		reactor.callback_remote = &cb_remote_ingame;
-		snprintf(session.state.game_name, sizeof session.state.game_name, "%d", gameid);
 		session.state.current = GAMESTATE_INGAME;
+		snprintf(session.state.game_name, sizeof session.state.game_name, "%s", p->game_name);
+		session.state.team = p->attached_as_team;
 		
 		output("Attached to game %d!\n", gameid);
 		print_prompt();
