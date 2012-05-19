@@ -58,12 +58,18 @@ void cb_local_default(char *buff, int len) {
 	on command("help") {
 		
 		output("Commands list:\n");
-		output("  g_attach gameid\n");
-		output("  g_new [name]\n");
-		output("  help\n");
-		output("  shutdown\n");
-		output("  exit\n");
+		output("  ls               - get games list\n");
+		output("  g_attach gameid  - attach to a game\n");
+		output("  g_new [name]     - start a new game\n");
+		output("  help             - this message\n");
+		output("  shutdown         - shutdown the server (admin only)\n");
+		output("  exit             - exit the app\n");
 	
+	} command("ls") {
+		
+		output("Getting games list...\n");
+		send_games_list_request(session.socket);
+		
 	} command("g_attach") {
 		
 		if(!tokget(cmd, 1)) {			
@@ -90,7 +96,8 @@ void cb_local_default(char *buff, int len) {
 		exit(EXIT_SUCCESS);
 		
 	} else {
-		output("Unknown command!\n");
+		if(tokget(cmd, 0))
+			output("Unknown command \"%s\"! Try using \"help\".\n", tokget(cmd, 0));
 	}
 	
 	tokenizer_free;

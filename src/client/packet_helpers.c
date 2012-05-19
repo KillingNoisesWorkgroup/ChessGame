@@ -23,3 +23,7 @@ int send_game_attach_request(int dst, uint32_t gameid, uint8_t team) {
 	packet.gameid = htonl(gameid);
 	return packet_send(dst, PACKET_GAME_ATTACH_REQUEST, sizeof packet, &packet);
 }
+
+int send_games_list_request(int dst) {
+	return packet_send(dst, PACKET_GAMES_LIST_REQUEST, 0, NULL);
+}
