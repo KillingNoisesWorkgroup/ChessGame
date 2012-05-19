@@ -22,7 +22,16 @@
 
 void cb_remote_default(int ptype, int plen, void *payload) {
 	on packet(PACKET_GAME_ATTACH) {
+	
 		output("Server wanted us to attach to game %d!\n", ntohl(((packet_game_attach*)(payload))->gameid));
+		
+	} packet(PACKET_GENERAL_STRING) {
+	
+		// Force string end
+		((char *)payload)[plen - 1] = '\0';
+		output("%s\n", (char *)payload);
+		print_prompt();
+	
 	} else {
 		output("Unknown packet!\n");
 		packet_debug(ptype, plen, payload);
