@@ -3,6 +3,11 @@
 
 #define MAX_PACKET_STRING_LENGTH 256
 
+/* Dynamic length packet types */
+
+#define PACKET_GENERAL_STRING 100
+
+
 /* PACKET C2S - Auth Request */
 
 #define PLAYER_NAME_MAXSIZE 256
@@ -68,3 +73,11 @@ typedef struct packet_game_attach{
 	uint32_t gameid;
 	uint8_t attached_as_team;
 } packet_game_attach;
+
+
+/* PACKET C2S - Games list request */
+
+#define PACKET_GAMES_LIST_REQUEST 8
+typedef struct packet_games_list_request{
+	// empty
+} packet_games_list_request;
