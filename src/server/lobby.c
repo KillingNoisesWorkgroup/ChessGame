@@ -11,5 +11,7 @@ void create_lobby(){
 	current_lobby.logins = init_dynamic_array(sizeof(login_entry));
 	current_lobby.sessions = init_dynamic_array(sizeof(session));
 	current_lobby.quickstart_players = init_dynamic_array(sizeof(int));
+	last_login_id = 1;
+	last_game_id = 1;
 	read_memory_dump();
 }

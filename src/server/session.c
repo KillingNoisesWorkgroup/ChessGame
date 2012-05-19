@@ -42,18 +42,20 @@ void send_game_creation_response(int dst, int val){
 
 void send_game_attach_response(int dst, uint32_t gameid, uint8_t team){
 	packet_game_attach packet;
+	game_description *g;
 	packet.gameid = htonl(gameid);
 	packet.attached_as_team = team;
+	game_description_find(gameid, &g);
+	strcpy(packet.game_name, g->name);
 	packet_send(dst, PACKET_GAME_ATTACH, sizeof(packet), &packet);
 }
 
 void send_games_list_response(int dst){
 	char *games_list;
-	char tmp[GAME_NAME_MAXSIZE + 10 + 1];
+	char tmp[GAME_NAME_MAXSIZE + 10 + 1 + 1];
 	int i, games_list_size;
 	
 	pthread_mutex_lock(&current_lobby.games->locking_mutex);
-	
 	games_list_size = (sizeof tmp)*(current_lobby.games->size) + 1;
 	if((games_list = malloc(games_list_size)) == NULL){
 		perror("malloc");
@@ -62,15 +64,14 @@ void send_games_list_response(int dst){
 	games_list[0] = '\0';
 	
 	for(i = 0; i < current_lobby.games->size; i++){
-		sprintf(tmp, "%-*s%10d\n", GAME_NAME_MAXSIZE,
-			((game_description*)current_lobby.games->data[i])->name,
-			((game_description*)current_lobby.games->data[i])->id);
+		sprintf(tmp, "%10d %-*s\n",
+			((game_description*)current_lobby.games->data[i])->id, GAME_NAME_MAXSIZE,
+			((game_description*)current_lobby.games->data[i])->name);
 		strcat(games_list, tmp);
 	}
-	games_list[games_list_size] = 0;
+	games_list[games_list_size-1] = 0;
 	
 	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
-	
 	packet_send(dst, PACKET_GENERAL_STRING, games_list_size, games_list);
 	free(games_list);
 }
@@ -97,8 +98,6 @@ int authentication(session *s, packet_auth_request *packet){
 	int userid, b = 1;
 	
 	pthread_mutex_lock(&current_lobby.logins->locking_mutex);
-	
-	if( current_lobby.logins->size == 0) last_login_id = 1;
 	
 	hex = passw_to_hex(packet->passw, ENCRYPTED_PASSWORD_LENGTH);
 	
@@ -137,9 +136,7 @@ int create_game(session* s, packet_game_creation_request *packet){
 	char* name;
 	
 	strcpy(name, packet->name);
-	if(current_lobby.games->size == 0){
-		last_game_id = 1;
-	}
+	
 	pthread_mutex_lock(&current_lobby.games->locking_mutex);
 	
 	game_d = init_game_description(last_game_id++);
