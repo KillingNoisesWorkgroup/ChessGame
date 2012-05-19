@@ -47,6 +47,34 @@ void send_game_attach_response(int dst, uint32_t gameid, uint8_t team){
 	packet_send(dst, PACKET_GAME_ATTACH, sizeof(packet), &packet);
 }
 
+void send_games_list_response(int dst){
+	char *games_list;
+	char tmp[GAME_NAME_MAXSIZE + 10 + 1];
+	int i, games_list_size;
+	
+	pthread_mutex_lock(&current_lobby.games->locking_mutex);
+	
+	games_list_size = (sizeof tmp)*(current_lobby.games->size) + 1;
+	if((games_list = malloc(games_list_size)) == NULL){
+		perror("malloc");
+		exit(1);
+	}
+	games_list[0] = '\0';
+	
+	for(i = 0; i < current_lobby.games->size; i++){
+		sprintf(tmp, "%-*s%10d\n", GAME_NAME_MAXSIZE,
+			((game_description*)current_lobby.games->data[i])->name,
+			((game_description*)current_lobby.games->data[i])->id);
+		strcat(games_list, tmp);
+	}
+	games_list[games_list_size] = 0;
+	
+	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
+	
+	packet_send(dst, PACKET_GENERAL_STRING, games_list_size, games_list);
+	free(games_list);
+}
+
 void destroy_session(session* s){
 	//free(s->client_addres);
 	close(s->client_socket);
@@ -115,7 +143,7 @@ int create_game(session* s, packet_game_creation_request *packet){
 	pthread_mutex_lock(&current_lobby.games->locking_mutex);
 	
 	game_d = init_game_description(last_game_id++);
-	game_d->name = packet->name;
+	strcpy(game_d->name, packet->name);
 	dynamic_array_add(current_lobby.games, game_d);
 	
 	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
@@ -129,9 +157,7 @@ int attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 	game_description* g;
 	pthread_mutex_lock(&current_lobby.games->locking_mutex);
 	
-	if(game_description_find(*gameid, &g) == -1){
-		return -1;
-	}
+	if(game_description_find(*gameid, &g) == -1) return -1;
 	
 	pthread_mutex_lock(&current_lobby.logins->locking_mutex);
 	
@@ -219,6 +245,10 @@ void* Session(void *arg){
 			print_log(current_session->thread_info, "Got game attach packet gameid = %d, team = %d", gameid, team);
 			attach_to_game(current_session, &gameid, &team);
 			send_game_attach_response(current_session->client_socket, gameid, team);
+			break;
+		case PACKET_GAMES_LIST_REQUEST:
+			print_log(current_session->thread_info, "Got games list request");
+			send_games_list_response(current_session->client_socket);
 			break;
 		default:
 			print_log(current_session->thread_info, "Got unknown packet(%d)", packet_type);

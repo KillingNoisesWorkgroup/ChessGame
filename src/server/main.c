@@ -59,6 +59,8 @@ int main(int argc, char **args){
 			perror("accept");
 			exit(1);
 		}
+		server_reuseaddr = 1;
+		setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &server_reuseaddr, sizeof(server_reuseaddr));
 		print_log("main", "Client connected on socket %d", client_socket);
 		create_session(client_socket, &client_addres);
 	}
