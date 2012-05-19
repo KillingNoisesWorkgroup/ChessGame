@@ -72,6 +72,7 @@ typedef struct packet_game_attach_request{
 typedef struct packet_game_attach{
 	uint32_t gameid;
 	uint8_t attached_as_team;
+	char game_name[MAX_PACKET_STRING_LENGTH];
 } packet_game_attach;
 
 
