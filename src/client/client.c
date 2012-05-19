@@ -112,7 +112,7 @@ void input_thread_local(void *arg) {
 		pthread_mutex_lock(&reactor.locking_mutex);
 		
 		// Do all the stuff in here
-		printf("Command: %s", buff);
+		//printf("Command: %s", buff);
 		
 		if(reactor.callback_local) {
 			reactor.callback_local(buff, len);
