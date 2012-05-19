@@ -10,7 +10,11 @@
 
 void print_prompt() {
 	// print user prompt
-	output("[%s]$ ", session.login);
+	if(session.state.current == GAMESTATE_INGAME && session.state.current_game_name) {
+		output("[%s][%s]$ ", session.login, session.state.current_game_name);
+	} else {
+		output("[%s]$ ", session.login);
+	}
 }
 
 int get_string(char **buffer, size_t *length) {
@@ -72,5 +76,7 @@ int output(const char *template, ...) {
 	va_start(ap, template);
     val = vfprintf(stdout, template, ap);
     va_end(ap);
+	
+	fflush(stdout);
 	return val;
 }

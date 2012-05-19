@@ -3,6 +3,8 @@
 
 #include <pthread.h>
 
+#include "gamestate.h"
+
 #include "../shared/shared.h"
 #include "../shared/networking.h"
 
@@ -21,6 +23,8 @@ typedef struct session_rec {
 	unsigned char password_encrypted[ENCRYPTED_PASSWORD_LENGTH];
 	
 	uint32_t userid;
+	
+	gamestate_rec state;
 	
 	int socket;
 } session_rec;

@@ -60,6 +60,9 @@ void authenticate() {
 	session.userid = ntohl(((packet_auth_response*)payload)->userid);
 }
 
+void common_init() {
+	session.state.current = GAMESTATE_LOBBY;
+}
 
 void reactor_init() {
 	reactor.callback_remote = NULL;
@@ -81,8 +84,8 @@ void input_thread_remote(void *arg) {
 		pthread_mutex_lock(&reactor.locking_mutex);
 		
 		// Do all the stuff in here
-		printf("Remote input got packet!\n");
-		packet_debug(ptype, plen, payload);
+		//printf("Remote input got packet!\n");
+		//packet_debug(ptype, plen, payload);
 		
 		if(reactor.callback_remote) {
 			reactor.callback_remote(ptype, plen, payload);
@@ -162,6 +165,7 @@ int main(int args, char **argv) {
 	printf("Success!\n");
 	
 	reactor_init();
+	common_init();
 	
 	// Create threads
 	

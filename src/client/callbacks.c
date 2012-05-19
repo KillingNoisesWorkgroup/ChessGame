@@ -18,12 +18,33 @@
 // Variable names must be all the same as in the prototype for 
 // fancy helpers to work properly
 
-// Default callbacks
+// Callbacks
+
+void cb_remote_ingame(int ptype, int plen, void *payload) {
+	on packet(PACKET_GENERAL_STRING) {
+	
+		// Force string end
+		((char *)payload)[plen - 1] = '\0';
+		output("%s\n", (char *)payload);
+		print_prompt();
+	
+	} else {
+		output("Unknown packet (ingame)!\n");
+		packet_debug(ptype, plen, payload);
+		print_prompt();
+	}
+}
 
 void cb_remote_default(int ptype, int plen, void *payload) {
 	on packet(PACKET_GAME_ATTACH) {
 	
-		output("Server wanted us to attach to game %d!\n", ntohl(((packet_game_attach*)(payload))->gameid));
+		int gameid = ntohl(((packet_game_attach*)(payload))->gameid);
+		reactor.callback_remote = &cb_remote_ingame;
+		snprintf(session.state.current_game_name, sizeof session.state.current_game_name, "%d", gameid);
+		session.state.current = GAMESTATE_INGAME;
+		
+		output("Attached to game %d!\n", gameid);
+		print_prompt();
 		
 	} packet(PACKET_GENERAL_STRING) {
 	
@@ -35,6 +56,7 @@ void cb_remote_default(int ptype, int plen, void *payload) {
 	} else {
 		output("Unknown packet!\n");
 		packet_debug(ptype, plen, payload);
+		print_prompt();
 	}
 }
 
