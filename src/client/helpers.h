@@ -1,6 +1,8 @@
 #ifndef H_CLIENT_HELPERS_GUARD
 #define H_CLIENT_HELPERS_GUARD
 
+extern unsigned int ommit_next_autoprompt;
+
 typedef struct tokenized_string_t {
 	char *str;
 	size_t len;

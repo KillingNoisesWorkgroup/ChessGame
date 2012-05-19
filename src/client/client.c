@@ -106,7 +106,12 @@ void input_thread_local(void *arg) {
 	
 	while(1) {
 		// Read from input stream with blocking
-		print_prompt();	
+		if(ommit_next_autoprompt)
+			ommit_next_autoprompt--;
+		else
+			print_prompt();
+			
+
 		if(!get_string(&buff, &len)) {
 			printf("\nEOF\n");
 			exit(EXIT_SUCCESS);

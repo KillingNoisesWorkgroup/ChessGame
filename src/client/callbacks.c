@@ -40,7 +40,7 @@ void cb_remote_default(int ptype, int plen, void *payload) {
 	
 		int gameid = ntohl(((packet_game_attach*)(payload))->gameid);
 		reactor.callback_remote = &cb_remote_ingame;
-		snprintf(session.state.current_game_name, sizeof session.state.current_game_name, "%d", gameid);
+		snprintf(session.state.game_name, sizeof session.state.game_name, "%d", gameid);
 		session.state.current = GAMESTATE_INGAME;
 		
 		output("Attached to game %d!\n", gameid);
@@ -100,6 +100,7 @@ void cb_local_default(char *buff, int len) {
 		
 		output("Getting games list...\n");
 		send_games_list_request(session.socket);
+		ommit_next_autoprompt++;
 		
 	} command("g_attach") {
 		
@@ -108,6 +109,7 @@ void cb_local_default(char *buff, int len) {
 		} else {
 			output("Attaching to game...\n");
 			send_game_attach_request(session.socket, atoi(tokget(cmd, 1)), TEAM_AUTO);
+			ommit_next_autoprompt++;
 		}
 		
 	} command("g_new") {
@@ -115,11 +117,13 @@ void cb_local_default(char *buff, int len) {
 		output("Creating new game...\n");
 		reactor.callback_remote = &cb_remote_new_game_autoconnect;
 		send_game_creation_request(session.socket, tokget(cmd, 1) ? tokget(cmd, 1) : session.login);
+		ommit_next_autoprompt++;
 		
 	} command("shutdown") {
 	
 		output("Shutting the server down...\n");
 		send_shutdown(session.socket);
+		ommit_next_autoprompt++;
 		
 	} command("exit") {
 	

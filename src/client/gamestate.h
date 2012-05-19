@@ -11,7 +11,7 @@ typedef enum gamestates {
 
 typedef struct gamestate_rec {
 	gamestates current;
-	char current_game_name[MAX_PACKET_STRING_LENGTH];
+	char game_name[MAX_PACKET_STRING_LENGTH];
 } gamestate_rec;
 
 #endif

@@ -8,10 +8,12 @@
 #include "client.h"
 #include "helpers.h"
 
+unsigned int ommit_next_autoprompt = 0;
+
 void print_prompt() {
 	// print user prompt
-	if(session.state.current == GAMESTATE_INGAME && session.state.current_game_name) {
-		output("[%s][%s]$ ", session.login, session.state.current_game_name);
+	if(session.state.current == GAMESTATE_INGAME && session.state.game_name) {
+		output("[%s][%s]$ ", session.login, session.state.game_name);
 	} else {
 		output("[%s]$ ", session.login);
 	}
