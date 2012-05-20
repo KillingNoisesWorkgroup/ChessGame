@@ -27,16 +27,16 @@ typedef struct binary_data_t {
 
 // Game desk representation, ready to transfer over the network
 #pragma pack(push, 1)
-typedef struct figure {
+typedef struct figure_t {
 	uint8_t type;
 	uint8_t team;
-} figure;
+} figure_t;
 
-typedef figure cell;
+typedef figure_t cell_t;
 
-typedef struct desk {
-	cell cells[64];
-} desk;
+typedef struct desk_t {
+	cell_t cells[64];
+} desk_t;
 #pragma pack(pop)
 
 
