@@ -114,24 +114,24 @@ int packet_recv(int src, packet_type_t *packet_type, packet_length_t *length, vo
 
 void packet_debug(packet_type_t packet_type, packet_length_t packet_length, void *data) {
 	int i;
-	printf("Packet (%d bytes, type %d): \n", packet_length, packet_type);
+	fprintf(stderr, "Packet (%d bytes, type %d): \n", packet_length, packet_type);
 	for(i = 0; i < packet_length; i++) {
 		if(i == 64) {
-			printf("...");
+			fprintf(stderr, "...");
 			break;
 		}
-		printf("%02X ", ((unsigned char*)data)[i]);
-		if((i + 1) % 8 == 0) printf("\n");
+		fprintf(stderr, "%02X ", ((unsigned char*)data)[i]);
+		if((i + 1) % 8 == 0) fprintf(stderr, "\n");
 	}
-	printf("\n---------------\n");
+	fprintf(stderr, "\n---------------\n");
 }
 
 void packet_debug_full(packet_type_t packet_type, packet_length_t packet_length, void *data) {
 	int i;
-	printf("Packet (%d bytes, type %d): \n", packet_length, packet_type);
+	fprintf(stderr, "Packet (%d bytes, type %d): \n", packet_length, packet_type);
 	for(i = 0; i < packet_length; i++) {
-		printf("%02X ", ((unsigned char*)data)[i]);
-		if((i + 1) % 8 == 0) printf("\n");
+		fprintf(stderr, "%02X ", ((unsigned char*)data)[i]);
+		if((i + 1) % 8 == 0) fprintf(stderr, "\n");
 	}
-	printf("\n---------------\n");
+	fprintf(stderr, "\n---------------\n");
 }
