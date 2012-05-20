@@ -62,7 +62,7 @@ void init_desk(game_description *g){
 	place_fig(&g->desk, FIGURE_BISHOP, FIGURE_COLOR_WHITE, 5, 0);
 	place_fig(&g->desk, FIGURE_KNIGHT, FIGURE_COLOR_WHITE, 6, 0);
 	place_fig(&g->desk, FIGURE_ROOK, FIGURE_COLOR_WHITE, 7, 0);
-	for(i = 0; i < 7; i++){
+	for(i = 0; i < 8; i++){
 		place_fig(&g->desk, FIGURE_PAWN, FIGURE_COLOR_WHITE, i, 1);
 	}
 	
@@ -74,12 +74,12 @@ void init_desk(game_description *g){
 	place_fig(&g->desk, FIGURE_BISHOP, FIGURE_COLOR_BLACK, 5, 7);
 	place_fig(&g->desk, FIGURE_KNIGHT, FIGURE_COLOR_BLACK, 6, 7);
 	place_fig(&g->desk, FIGURE_ROOK, FIGURE_COLOR_BLACK, 7, 7);
-	for(i = 0; i < 7; i++){
+	for(i = 0; i < 8; i++){
 		place_fig(&g->desk, FIGURE_PAWN, FIGURE_COLOR_BLACK, i, 6);
 	}
 	
-	for(j = 2; j < 5; j++){
-		for(i = 0; i < 7; i++){
+	for(j = 2; j < 6; j++){
+		for(i = 0; i < 8; i++){
 			place_fig(&g->desk, FIGURE_NONE, FIGURE_COLOR_NONE, i, j);
 		}
 	}
