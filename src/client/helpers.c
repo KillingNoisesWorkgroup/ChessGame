@@ -5,7 +5,6 @@
 #include <stdarg.h>
 #include <string.h>
 #include <wchar.h>
-#include <wctype.h>
 
 #include "client.h"
 #include "helpers.h"
@@ -88,6 +87,7 @@ int output(const wchar_t *template, ...) {
 
 // Internal helper
 void print_figure(uint8_t type, uint8_t color) {
+	#ifdef LETTERS
 	switch(color) {
 		case FIGURE_COLOR_WHITE:
 			wprintf(L"\033[37;1m");
@@ -122,6 +122,42 @@ void print_figure(uint8_t type, uint8_t color) {
 	}
 	
 	wprintf(L"\033[0m");
+	#else
+	switch(color) {
+		case FIGURE_COLOR_WHITE:
+			wprintf(L"\033[37;1m");
+			break;
+		case FIGURE_COLOR_BLACK:
+			wprintf(L"\033[30;1m");					
+			break;
+	}
+	
+	switch(type) {
+	  case FIGURE_KING:
+		wprintf(L"%lc", (color == FIGURE_COLOR_WHITE) ? 0x2654 : 0x265B);
+		break;
+	  case FIGURE_QUEEN:
+		wprintf(L"%lc", (color == FIGURE_COLOR_WHITE) ? 0x2655 : 0x265A);
+		break;
+	  case FIGURE_ROOK:
+		wprintf(L"%lc", (color == FIGURE_COLOR_WHITE) ? 0x2656 : 0x265C);
+		break;
+	  case FIGURE_KNIGHT:
+		wprintf(L"%lc", (color == FIGURE_COLOR_WHITE) ? 0x2658 : 0x265D);
+		break;
+	  case FIGURE_BISHOP:
+		wprintf(L"%lc", (color == FIGURE_COLOR_WHITE) ? 0x2657 : 0x265E);
+		break;
+	  case FIGURE_PAWN:
+		wprintf(L"%lc", (color == FIGURE_COLOR_WHITE) ? 0x2659 : 0x265F);
+		break;
+	  default:
+		wprintf(L" ");
+		break;		
+	}
+	
+	wprintf(L"\033[0m");	
+	#endif
 	fflush(stdout);
 }
 
@@ -134,7 +170,7 @@ void print_desk(desk_t desk) {
 	for(i = 0; i < 8; i++) {
 		cycle = !cycle;
 		//printf("%d |", (7 - i) + 1);
-		wprintf(L"%d ", (7 - i) + 1);
+		wprintf(L" %d ", (7 - i) + 1);
 		
 		for(j = 0; j < 8; j++) {
 			cycle = !cycle;
@@ -150,7 +186,7 @@ void print_desk(desk_t desk) {
 		wprintf(L"\n");
 	}
 	
-	wprintf(L"  ");
+	wprintf(L"   ");
 	for(i = 0; i < 8; i++) wprintf(L" %c", num_to_char(i + 1));
 	
 	wprintf(L"\n");

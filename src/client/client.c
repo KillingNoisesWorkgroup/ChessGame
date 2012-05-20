@@ -10,6 +10,7 @@
 #include <netdb.h>
 #include <pthread.h>
 #include <openssl/md5.h>
+#include <locale.h>
 
 #include "client.h"
 #include "helpers.h"
@@ -157,6 +158,8 @@ int main(int args, char **argv) {
 	session.login[PLAYER_NAME_MAXSIZE-1] = '\0';
 	
 	MD5((unsigned char *) argv[4], strlen(argv[4]), (unsigned char*)&session.password_encrypted);
+	
+	setlocale(LC_ALL, "");
 	
 	output(L"Connecting...\n");
 	
