@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <openssl/md5.h>
 
+#include "common.h"
+
 // Turn on packing mode of the compiler
 #pragma pack(push, 1)
 
