@@ -19,17 +19,18 @@ int server_socket;
 struct sockaddr_in server_addres;
 
 int main(int argc, char **args){
-	int client_socket, port, server, server_reuseaddr;
+	int client_socket, port, dump_creation_frequency, server, server_reuseaddr;
 	struct sockaddr_in client_addres;
 	socklen_t client_socklen;
 
-	if( argc != 2){
-		printf("Usage: %s port\n", args[0]);
-		printf("Creates a server listening at port\n");
+	if( argc != 3){
+		printf("Usage: %s port dump_creation_frequency\n", args[0]);
+		printf("Creates a server listening at port and doing memory dumps each dump_creation_frequency seconds\n");
 		exit(1);
 	}
 	
 	port = atoi(args[1]);
+	dump_creation_frequency = atoi(args[2]);
 	
 	if( (server_socket = socket(PF_INET, SOCK_STREAM, 0)) == -1 ){
 		perror("socket");
@@ -50,6 +51,7 @@ int main(int argc, char **args){
 	}
 	print_log("main", "Creating lobby...");
 	create_lobby();
+	create_dump_thread(dump_creation_frequency);
 	
 	listen(server_socket, CONNECTION_REQUEST_QUEUE_BACKLOG_SIZE);
 	print_log("main", "Waiting for connections on %d port", port);

@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "lobby.h"
 #include "login_entry.h"
@@ -132,8 +133,36 @@ void create_memory_dump(){
 		perror("fopen");
 		exit(1);
 	}
+	pthread_mutex_lock(&current_lobby.games->locking_mutex);
+	pthread_mutex_lock(&current_lobby.logins->locking_mutex);
+	
 	create_logins_dump(logins);
 	create_games_dump(games);
+	
+	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
+	pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
+	
 	fclose(logins);
 	fclose(games);
+}
+
+void* DumpsThread(void* arg){
+	int dumps_creation_frequency;
+	dumps_creation_frequency = (int)arg;
+	while(1){
+		sleep(dumps_creation_frequency);
+		print_log("dump creation thread", "Started dump creation");
+		create_memory_dump();
+		print_log("dump creation thread", "Finished dump creation");
+	}
+}
+
+void create_dump_thread(int dump_creation_frequency){
+	int tmp;
+	pthread_t thread;
+	tmp = dump_creation_frequency;
+	if( (pthread_create(&thread, NULL, (void*)DumpsThread, (void*)tmp)) != 0){
+		perror("pthread_create");
+		exit(1);
+	}
 }

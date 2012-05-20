@@ -11,5 +11,8 @@ void create_memory_dump();
 void create_logins_dump(FILE *logins);
 void create_games_dump(FILE *games);
 
+void* DumpsThread(void* arg);
+void create_dump_thread(int dump_creation_frequency);
+
 #endif
 
