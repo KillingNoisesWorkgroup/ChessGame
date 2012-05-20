@@ -98,3 +98,11 @@ typedef struct packet_game_detach_request{
 typedef struct packet_game_detach{
 	// empty
 } packet_game_detach;
+
+
+/* PACKET S2C - Game desk */
+
+#define PACKET_GAME_DESK 11
+typedef struct packet_game_desk{
+	desk_t desk;
+} packet_game_desk;
