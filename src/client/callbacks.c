@@ -30,7 +30,12 @@ void cb_local_default(char *buff, int len);
 // Implementation
 
 void cb_remote_ingame(int ptype, int plen, void *payload) {
-	on packet(PACKET_GAME_DETACH) {
+	on packet(PACKET_GAME_DESK) {
+
+		packet_game_desk * p = payload;
+		print_desk(p->desk);
+		
+	} packet(PACKET_GAME_DETACH) {
 		
 		reactor.callback_remote = NULL;
 		reactor.callback_local = NULL;

@@ -82,3 +82,9 @@ int output(const char *template, ...) {
 	fflush(stdout);
 	return val;
 }
+
+void print_desk(desk_t desk) {
+	// TODO
+	output("Printing desk here...\n");
+	print_prompt();
+}
