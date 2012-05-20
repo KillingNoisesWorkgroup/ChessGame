@@ -31,3 +31,12 @@ int send_games_list_request(int dst) {
 int send_game_detach_request(int dst) {
 	return packet_send(dst, PACKET_GAME_DETACH_REQUEST, 0, NULL);
 }
+
+int send_figure_move(int dst, uint8_t from_letter, uint8_t from_number, uint8_t to_letter, uint8_t to_number) {
+	packet_figure_move packet;
+	packet.from_letter = from_letter;
+	packet.from_number = from_number;
+	packet.to_letter = to_letter;
+	packet.to_number = to_number;
+	return packet_send(dst, PACKET_FIGURE_MOVE, sizeof packet, &packet);
+}

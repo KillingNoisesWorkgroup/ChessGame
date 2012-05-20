@@ -15,7 +15,6 @@
 #include "helpers.h"
 #include "callbacks.h"
 
-#include "../shared/shared.h"
 #include "../shared/networking.h"
 
 void connect_to_server() {

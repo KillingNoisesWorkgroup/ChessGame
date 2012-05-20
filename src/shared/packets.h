@@ -106,3 +106,14 @@ typedef struct packet_game_detach{
 typedef struct packet_game_desk{
 	desk_t desk;
 } packet_game_desk;
+
+
+/* PACKET S2C - Figure move */
+
+#define PACKET_FIGURE_MOVE 12
+typedef struct packet_figure_move{
+	uint8_t from_number;
+	uint8_t from_letter;
+	uint8_t to_number;
+	uint8_t to_letter;	
+} packet_figure_move;

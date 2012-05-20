@@ -8,6 +8,8 @@
 #include "callbacks.h"
 #include "packet_helpers.h"
 
+#include "../shared/helpers.h"
+
 // Some helpers to fancy up the code
 #define on if(0){}
 #define command(tested_command) else if(strcmp(tokget(cmd, 0), (tested_command)) == 0)
@@ -121,7 +123,29 @@ void cb_local_ingame(char *buff, int len) {
 		output("  help       - this message\n");
 		output("  exit       - exit the app\n");
 	
-	} command("detach") {
+	} command("I") {
+		
+		if(!tokget(cmd, 1) || !tokget(cmd, 2) || tokget(cmd, 3) || strlen(tokget(cmd, 1)) != 2 || strlen(tokget(cmd, 2)) != 2) {
+			output("Valid format for this command is \"I from to\" like \"I e2 e4\".\n");
+		} else {
+		
+			int from_letter = char_to_num(tokget(cmd, 1)[0]) - 1;
+			int to_letter   = char_to_num(tokget(cmd, 2)[0]) - 1;
+			
+			int from_number = atoi(&tokget(cmd, 1)[1]) - 1;
+			int to_number   = atoi(&tokget(cmd, 2)[1]) - 1;
+			
+			// Input validation
+			if(from_letter < 0 || to_letter < 0 || from_number < 0 || to_number < 0 || 
+				from_letter > 7 || to_letter > 7 || from_number > 7 || to_number > 7 ) {
+				output("Invalid arguments! Use this command like \"I e2 e4\"!\n");
+			} else {
+				send_figure_move(session.socket, from_letter, from_number, to_letter, to_number);
+				ommit_next_autoprompt++;
+			}
+		}
+		
+	}command("detach") {
 		
 		output("Detaching a game...\n");
 		send_game_detach_request(session.socket);
@@ -133,7 +157,7 @@ void cb_local_ingame(char *buff, int len) {
 		exit(EXIT_SUCCESS);
 		
 	} else {
-		if(tokget(cmd, 0))
+		if(tokget(cmd, 0) && strlen(tokget(cmd, 0)) > 0)
 			output("Unknown command \"%s\"! Try using \"help\".\n", tokget(cmd, 0));
 	}
 	
@@ -188,7 +212,7 @@ void cb_local_default(char *buff, int len) {
 		exit(EXIT_SUCCESS);
 		
 	} else {
-		if(tokget(cmd, 0))
+		if(tokget(cmd, 0) && strlen(tokget(cmd, 0)) > 0)
 			output("Unknown command \"%s\"! Try using \"help\".\n", tokget(cmd, 0));
 	}
 	

@@ -5,7 +5,6 @@
 
 #include "gamestate.h"
 
-#include "../shared/shared.h"
 #include "../shared/networking.h"
 
 // Maximum length of one command input from stdin

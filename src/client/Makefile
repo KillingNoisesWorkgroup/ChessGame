@@ -9,7 +9,7 @@ all: clean $(EXECUTABLE)
 	
 $(EXECUTABLE): $(OBJECTS)
 	make --directory=../shared/
-	$(CC) -o $@ $(OBJECTS) ../shared/networking.o $(LDFLAGS)
+	$(CC) -o $@ $(OBJECTS) ../shared/networking.o ../shared/helpers.o $(LDFLAGS)
 
 .c.o:
 	$(CC) $(CFLAGS) $< -o $@
