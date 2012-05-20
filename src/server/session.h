@@ -44,8 +44,8 @@ char* passw_to_hex(unsigned char * passw, int size);
 // Creates new game. Returns game id
 int create_game(session* s, packet_game_creation_request *packet);
 
-// Attaches user to game. Returns 1 on success, -1 on failure
-int attach_to_game(session *s, uint32_t* gameid, uint8_t* team);
+// Attaches user to game if it can and sends corresponding packet_game_attach
+void attach_to_game(session *s, uint32_t* gameid, uint8_t* team);
 
 // Detaching user from game
 void detach_from_game(session *s);
@@ -58,12 +58,15 @@ void send_auth_response(int dst, int val);
 void send_game_creation_response(int dst, int val);
 
 // Sends packet_game_attach_response. If attaching to game is failed, gameid should be -1
-void send_game_attach_response(int dst, uint32_t gameid, uint8_t team);
+void send_game_attach(int dst, uint32_t gameid, uint8_t team);
 
 // Sends string, containing list of all games
 void send_games_list_response(int dst);
 
 // Sends packet_game_detach
 void send_game_detach(int dst);
+
+// Sends packet_game_desk
+void send_game_desk(int dst, game_description* g);
 
 #endif

@@ -1,0 +1,6 @@
+#ifndef H_SERVER_GAME_LOG_GUARD
+#define H_SERVER_GAME_LOG_GUARD
+
+
+
+#endif

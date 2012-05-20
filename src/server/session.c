@@ -40,7 +40,7 @@ void send_game_creation_response(int dst, int val){
 	packet_send(dst, PACKET_GAME_CREATION_RESPONSE, sizeof(packet), &packet);
 }
 
-void send_game_attach_response(int dst, uint32_t gameid, uint8_t team){
+void send_game_attach(int dst, uint32_t gameid, uint8_t team){
 	packet_game_attach packet;
 	game_description *g;
 	packet.gameid = htonl(gameid);
@@ -79,6 +79,12 @@ void send_games_list_response(int dst){
 	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
 	packet_send(dst, PACKET_GENERAL_STRING, games_list_size, games_list);
 	free(games_list);
+}
+
+void send_game_desk(int dst, game_description* g){
+	packet_game_desk packet;
+	packet.desk = g->desk;
+	packet_send(dst, PACKET_GAME_DESK, sizeof(desk_t), &packet);
 }
 
 void destroy_session(session* s){
@@ -154,14 +160,21 @@ int create_game(session* s, packet_game_creation_request *packet){
 	return game_d->id;
 }
 
-int attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
+void attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 	game_description* g;
+	int b = 1;
 	pthread_mutex_lock(&current_lobby.games->locking_mutex);
 	
-	if(game_description_find(*gameid, &g) == -1){
+	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
+	if((game_description_find(*gameid, &g) == -1) || (s->game != NULL)){
+		send_game_attach(s->client_socket, 0, 0);
 		pthread_mutex_unlock(&current_lobby.games->locking_mutex);
-		return -1;
+		pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
+		return;
 	}
+	s->game = g;
+	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
+	
 	pthread_mutex_lock(&current_lobby.logins->locking_mutex);
 	
 	switch(*team){
@@ -176,7 +189,9 @@ int attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 			*team = TEAM_BLACK;
 		}
 		else{
+			pthread_mutex_lock(&g->spectators->locking_mutex);
 			dynamic_array_add(g->spectators, (void*)s->player);
+			pthread_mutex_unlock(&g->spectators->locking_mutex);
 			*team = TEAM_SPECTATORS;
 		}
 		break;
@@ -187,23 +202,17 @@ int attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 		g->black = s->player;
 		break;
 	case TEAM_SPECTATORS:
+		pthread_mutex_lock(&g->spectators->locking_mutex);
 		dynamic_array_add(g->spectators, (void*)s->player);
+		pthread_mutex_unlock(&g->spectators->locking_mutex);
 		break;
 	}
 	
-	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
-	if(s->game != NULL){
-		pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
-		pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
-		pthread_mutex_unlock(&current_lobby.games->locking_mutex);
-		return -1;
-	} else s->game = g;
-	
 	print_log(s->thread_info, "Attached to game %s(%d)", g->name, g->id);
-	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
+	send_game_attach(s->client_socket, *gameid, *team);
+	send_game_desk(s->client_socket, g);
 	pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
 	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
-	return 1;
 }
 
 void detach_from_game(session *s){
@@ -267,8 +276,7 @@ void* Session(void *arg){
 			gameid = ntohl(((packet_game_attach_request*)data)->gameid);
 			team = ((packet_game_attach_request*)data)->team;
 			print_log(current_session->thread_info, "Got game attach request");
-			if(attach_to_game(current_session, &gameid, &team) == -1) gameid = -1;
-			send_game_attach_response(current_session->client_socket, gameid, team);
+			attach_to_game(current_session, &gameid, &team);
 			break;
 		case PACKET_GAMES_LIST_REQUEST:
 			print_log(current_session->thread_info, "Got games list request");
