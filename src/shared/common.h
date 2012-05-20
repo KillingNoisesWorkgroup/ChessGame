@@ -10,5 +10,18 @@ typedef struct binary_data_t {
 	char * content;
 } binary_data_t;
 
-#endif
+typedef struct deck{
+	cell cells[64];
+} deck;
 
+typedef struct figure{
+	uint8_t type;
+	uint8_t team;
+} figure;
+
+typedef struct cell {
+	uint8_t isempty;
+	figure f;
+} cell;
+
+#endif
