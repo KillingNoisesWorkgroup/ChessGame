@@ -82,3 +82,19 @@ typedef struct packet_game_attach{
 typedef struct packet_games_list_request{
 	// empty
 } packet_games_list_request;
+
+
+/* PACKET C2S - Game detach request */
+
+#define PACKET_GAME_DETACH_REQUEST 9
+typedef struct packet_game_detach_request{
+	// empty
+} packet_game_detach_request;
+
+
+/* PACKET S2C - Game detach response */
+
+#define PACKET_GAME_DETACH 10
+typedef struct packet_game_detach{
+	// empty
+} packet_game_detach;

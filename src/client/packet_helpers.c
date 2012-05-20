@@ -27,3 +27,7 @@ int send_game_attach_request(int dst, uint32_t gameid, uint8_t team) {
 int send_games_list_request(int dst) {
 	return packet_send(dst, PACKET_GAMES_LIST_REQUEST, 0, NULL);
 }
+
+int send_game_detach_request(int dst) {
+	return packet_send(dst, PACKET_GAME_DETACH_REQUEST, 0, NULL);
+}

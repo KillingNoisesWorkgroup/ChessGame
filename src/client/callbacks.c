@@ -18,10 +18,28 @@
 // Variable names must be all the same as in the prototype for 
 // fancy helpers to work properly
 
-// Callbacks
+// Callbacks definitions
+
+void cb_remote_ingame(int ptype, int plen, void *payload);
+void cb_remote_default(int ptype, int plen, void *payload);
+void cb_remote_new_game_autoconnect(int ptype, int plen, void *payload);
+
+void cb_local_ingame(char *buff, int len);
+void cb_local_default(char *buff, int len);
+
+// Implementation
 
 void cb_remote_ingame(int ptype, int plen, void *payload) {
-	on packet(PACKET_GENERAL_STRING) {
+	on packet(PACKET_GAME_DETACH) {
+		
+		reactor.callback_remote = NULL;
+		reactor.callback_local = NULL;
+		session.state.current = GAMESTATE_LOBBY;
+		
+		output("You are now in lobby!\n");
+		print_prompt();
+		
+	} packet(PACKET_GENERAL_STRING) {
 	
 		// Force string end
 		((char *)payload)[plen - 1] = '\0';
@@ -42,6 +60,7 @@ void cb_remote_default(int ptype, int plen, void *payload) {
 		int gameid = ntohl(p->gameid);
 		
 		reactor.callback_remote = &cb_remote_ingame;
+		reactor.callback_local = &cb_local_ingame;
 		session.state.current = GAMESTATE_INGAME;
 		snprintf(session.state.game_name, sizeof session.state.game_name, "%s", p->game_name);
 		session.state.team = p->attached_as_team;
@@ -84,6 +103,36 @@ void cb_remote_new_game_autoconnect(int ptype, int plen, void *payload) {
 	
 	output("New game with ID %d was created, attaching...\n", gameid);
 	send_game_attach_request(session.socket, gameid, TEAM_AUTO);
+}
+
+void cb_local_ingame(char *buff, int len) {
+	tokenizer_init;
+	
+	on command("help") {
+		
+		output("Commands list:\n");
+		output("  I from to  - move figure from <from> position to <to>\n");
+		output("  detach     - quit current game session\n");
+		output("  help       - this message\n");
+		output("  exit       - exit the app\n");
+	
+	} command("detach") {
+		
+		output("Detaching a game...\n");
+		send_game_detach_request(session.socket);
+		ommit_next_autoprompt++;
+		
+	} command("exit") {
+	
+		output("Bye!\n");
+		exit(EXIT_SUCCESS);
+		
+	} else {
+		if(tokget(cmd, 0))
+			output("Unknown command \"%s\"! Try using \"help\".\n", tokget(cmd, 0));
+	}
+	
+	tokenizer_free;
 }
 
 void cb_local_default(char *buff, int len) {
