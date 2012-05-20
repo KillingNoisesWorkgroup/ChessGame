@@ -5,6 +5,9 @@
 
 #include "login_entry.h"
 #include "../shared/networking.h"
+#include "game_log.h"
+#include "game_description.h"
+#include "../shared/common.h"
 
 #define SESSION_STATE_INITIAL_STATE 0
 #define SESSION_STATE_WAITING_FOR_AUTHENTICATION 1
@@ -17,6 +20,7 @@ typedef struct session{
 	struct sockaddr_in *client_addres;
 	int client_socket;
 	pthread_t thread;
+	game_description *game;
 	char thread_info[128];
 } session;
 
@@ -44,6 +48,9 @@ int create_game(session* s, packet_game_creation_request *packet);
 // Attaches user to game. Returns 1 on success, -1 on failure
 int attach_to_game(session *s, uint32_t* gameid, uint8_t* team);
 
+// Detaching user from game
+void detach_from_game(session *s);
+
 
 // Sends packet_auth_response
 void send_auth_response(int dst, int val);
@@ -56,5 +63,8 @@ void send_game_attach_response(int dst, uint32_t gameid, uint8_t team);
 
 // Sends string, containing list of all games
 void send_games_list_response(int dst);
+
+// Sends packet_game_detach
+void send_game_detach(int dst);
 
 #endif

@@ -50,6 +50,11 @@ void send_game_attach_response(int dst, uint32_t gameid, uint8_t team){
 	packet_send(dst, PACKET_GAME_ATTACH, sizeof(packet), &packet);
 }
 
+void send_game_detach(int dst){
+	packet_game_detach packet;
+	packet_send(dst, PACKET_GAME_DETACH, sizeof(packet), &packet);
+}
+
 void send_games_list_response(int dst){
 	char *games_list;
 	char tmp[GAME_NAME_MAXSIZE + 10 + 1 + 1];
@@ -186,10 +191,31 @@ int attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 		break;
 	}
 	
-	pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
+	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
+	if(s->game != NULL){
+		pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
+		pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
+		pthread_mutex_unlock(&current_lobby.games->locking_mutex);
+		return -1;
+	} else s->game = g;
 	
+	print_log(s->thread_info, "Attached to game %s(%d)", g->name, g->id);
+	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
+	pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
 	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
 	return 1;
+}
+
+void detach_from_game(session *s){
+	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
+	if(s->game == NULL){
+		pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
+		return;
+	}
+	print_log(s->thread_info, "Detached from game %s(%d)", s->game->name, s->game->id);
+	s->game = NULL;
+	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
+	send_game_detach(s->client_socket);
 }
 
 void* Session(void *arg){
@@ -240,13 +266,17 @@ void* Session(void *arg){
 		case PACKET_GAME_ATTACH_REQUEST:
 			gameid = ntohl(((packet_game_attach_request*)data)->gameid);
 			team = ((packet_game_attach_request*)data)->team;
-			print_log(current_session->thread_info, "Got game attach packet gameid = %d, team = %d", gameid, team);
+			print_log(current_session->thread_info, "Got game attach request");
 			if(attach_to_game(current_session, &gameid, &team) == -1) gameid = -1;
 			send_game_attach_response(current_session->client_socket, gameid, team);
 			break;
 		case PACKET_GAMES_LIST_REQUEST:
 			print_log(current_session->thread_info, "Got games list request");
 			send_games_list_response(current_session->client_socket);
+			break;
+		case PACKET_GAME_DETACH_REQUEST:
+			print_log(current_session->thread_info, "Got game detach request");
+			detach_from_game(current_session);
 			break;
 		default:
 			print_log(current_session->thread_info, "Got unknown packet(%d)", packet_type);
@@ -266,6 +296,7 @@ void create_session(int client_socket, struct sockaddr_in *client_addres){
 	new_session->state = SESSION_STATE_WAITING_FOR_AUTHENTICATION;
 	new_session->client_socket = client_socket;
 	new_session->client_addres = client_addres;
+	new_session->game = NULL;
 	
 	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
 	dynamic_array_add(current_lobby.sessions, new_session);
