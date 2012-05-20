@@ -83,8 +83,65 @@ int output(const char *template, ...) {
 	return val;
 }
 
-void print_desk(desk_t desk) {
-	// TODO
-	output("Printing desk here...\n");
+// Internal helper
+char figure_to_char(uint8_t figure_type) {
+	switch(figure_type) {
+	  case FIGURE_KING:
+		return 'K';
+	  case FIGURE_QUEEN:
+		return 'Q';
+	  case FIGURE_ROOK:
+		return 'Q';
+	  case FIGURE_KNIGHT:
+		return 'K';
+	  case FIGURE_BISHOP:
+		return 'Q';
+	  case FIGURE_PAWN:
+		return 'P';
+	}
+	return ' ';
+}
+
+void print_desk(desk_t desk) {	
+	int i, j;
+	int cycle = 0;
+	
+	for(i = 0; i < 8; i++) {
+		cycle = !cycle;
+		printf("%d |", (7 - i) + 1);
+		
+		for(j = 0; j < 8; j++) {
+			cycle = !cycle;
+			cycle ? printf("\033[43m") : printf("\033[40m");
+			printf(" ");
+			
+			cell_t * cell = &desk.cells[(7 - i)*8 + j];
+			
+			switch(cell->color) {
+				case FIGURE_COLOR_WHITE:
+					printf("\033[32;1m");
+					break;
+				case FIGURE_COLOR_BLACK:
+					printf("\033[37;1m");					
+					break;
+			}
+			
+			printf("%c", figure_to_char(cell->type));
+			
+			printf("\033[0m");
+		}
+		
+		printf("\n");
+	}
+	
+	printf("--|");
+	
+	for(i = 0; i < 8; i++) printf("--");
+	printf("\n");
+	printf("  |");
+	for(i = 0; i < 8; i++) printf(" %c", num_to_char(i + 1));
+	
+	printf("\n");
+	
 	print_prompt();
 }
