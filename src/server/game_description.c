@@ -69,8 +69,8 @@ void init_desk(game_description *g){
 	place_fig(&g->desk, FIGURE_ROOK, FIGURE_COLOR_BLACK, 0, 7);
 	place_fig(&g->desk, FIGURE_KNIGHT, FIGURE_COLOR_BLACK, 1, 7);
 	place_fig(&g->desk, FIGURE_BISHOP, FIGURE_COLOR_BLACK, 2, 7);
-	place_fig(&g->desk, FIGURE_KING, FIGURE_COLOR_BLACK, 3, 7);
-	place_fig(&g->desk, FIGURE_QUEEN, FIGURE_COLOR_BLACK, 4, 7);
+	place_fig(&g->desk, FIGURE_QUEEN, FIGURE_COLOR_BLACK, 3, 7);
+	place_fig(&g->desk, FIGURE_KING, FIGURE_COLOR_BLACK, 4, 7);
 	place_fig(&g->desk, FIGURE_BISHOP, FIGURE_COLOR_BLACK, 5, 7);
 	place_fig(&g->desk, FIGURE_KNIGHT, FIGURE_COLOR_BLACK, 6, 7);
 	place_fig(&g->desk, FIGURE_ROOK, FIGURE_COLOR_BLACK, 7, 7);
