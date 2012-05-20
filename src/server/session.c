@@ -120,7 +120,6 @@ int authentication(session *s, packet_auth_request *packet){
 		} else {
 			print_log(s->thread_info, "Authentication of user %s(%d) failed", login->login, login->id);
 			free(hex);
-			pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
 			b = 0;
 		}
 	}
@@ -154,8 +153,10 @@ int attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 	game_description* g;
 	pthread_mutex_lock(&current_lobby.games->locking_mutex);
 	
-	if(game_description_find(*gameid, &g) == -1) return -1;
-	
+	if(game_description_find(*gameid, &g) == -1){
+		pthread_mutex_unlock(&current_lobby.games->locking_mutex);
+		return -1;
+	}
 	pthread_mutex_lock(&current_lobby.logins->locking_mutex);
 	
 	switch(*team){
@@ -240,7 +241,7 @@ void* Session(void *arg){
 			gameid = ntohl(((packet_game_attach_request*)data)->gameid);
 			team = ((packet_game_attach_request*)data)->team;
 			print_log(current_session->thread_info, "Got game attach packet gameid = %d, team = %d", gameid, team);
-			attach_to_game(current_session, &gameid, &team);
+			if(attach_to_game(current_session, &gameid, &team) == -1) gameid = -1;
 			send_game_attach_response(current_session->client_socket, gameid, team);
 			break;
 		case PACKET_GAMES_LIST_REQUEST:
