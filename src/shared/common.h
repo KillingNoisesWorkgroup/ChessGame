@@ -25,8 +25,9 @@ typedef struct binary_data_t {
 #define FIGURE_BISHOP 5
 #define FIGURE_PAWN   6
 
-#define FIGURE_COLOR_WHITE 0
-#define FIGURE_COLOR_BLACK 1
+#define FIGURE_COLOR_NONE  0
+#define FIGURE_COLOR_WHITE 1
+#define FIGURE_COLOR_BLACK 2
 
 // Game desk representation, ready to transfer over the network
 #pragma pack(push, 1)
