@@ -5,7 +5,6 @@
 
 #include "login_entry.h"
 #include "../shared/networking.h"
-#include "game_log.h"
 #include "game_description.h"
 #include "../shared/common.h"
 
