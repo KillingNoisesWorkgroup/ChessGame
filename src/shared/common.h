@@ -23,16 +23,17 @@ typedef struct binary_data_t {
 #define FIGURE_ROOK   3
 #define FIGURE_KNIGHT 4
 #define FIGURE_BISHOP 5
-#define FIGURE_PAWNS  6
+#define FIGURE_PAWN   6
+
+#define FIGURE_COLOR_WHITE 0
+#define FIGURE_COLOR_BLACK 1
 
 // Game desk representation, ready to transfer over the network
 #pragma pack(push, 1)
-typedef struct figure_t {
+typedef struct cell_t {
 	uint8_t type;
-	uint8_t team;
-} figure_t;
-
-typedef figure_t cell_t;
+	uint8_t color;
+} cell_t;
 
 /*
   Desk should be represented like this:
