@@ -91,11 +91,11 @@ char figure_to_char(uint8_t figure_type) {
 	  case FIGURE_QUEEN:
 		return 'Q';
 	  case FIGURE_ROOK:
-		return 'Q';
+		return 'R';
 	  case FIGURE_KNIGHT:
-		return 'K';
+		return 'N';
 	  case FIGURE_BISHOP:
-		return 'Q';
+		return 'B';
 	  case FIGURE_PAWN:
 		return 'P';
 	}
@@ -104,7 +104,7 @@ char figure_to_char(uint8_t figure_type) {
 
 void print_desk(desk_t desk) {	
 	int i, j;
-	int cycle = 0;
+	int cycle = 1;
 	
 	for(i = 0; i < 8; i++) {
 		cycle = !cycle;
