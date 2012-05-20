@@ -34,6 +34,20 @@ typedef struct figure_t {
 
 typedef figure_t cell_t;
 
+/*
+  Desk should be represented like this:
+      A  B  C  D  E  F  G  H
+   1  0  1  2  3  4  5  6  7
+   2  8  9 10 11 12 13 14 15
+   3 16 ...
+   4 24 ...
+   5 32 ...
+   6 40 ...
+   7 48 ...
+   8 56 57 58 59 60 61 62 63
+   
+*/
+
 typedef struct desk_t {
 	cell_t cells[64];
 } desk_t;
