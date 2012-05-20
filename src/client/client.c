@@ -112,7 +112,7 @@ void input_thread_local(void *arg) {
 			
 
 		if(!get_string(&buff, &len)) {
-			printf("\nEOF\n");
+			fprintf(stderr, "\nEOF\n");
 			exit(EXIT_SUCCESS);
 		}
 		
@@ -158,15 +158,15 @@ int main(int args, char **argv) {
 	
 	MD5((unsigned char *) argv[4], strlen(argv[4]), (unsigned char*)&session.password_encrypted);
 	
-	printf("Connecting...\n");
+	output(L"Connecting...\n");
 	
 	connect_to_server();
 	
-	printf("Authenticating...\n");
+	output(L"Authenticating...\n");
 	
 	authenticate();
 	
-	printf("Success!\n");
+	output(L"Success!\n");
 	
 	reactor_init();
 	common_init();

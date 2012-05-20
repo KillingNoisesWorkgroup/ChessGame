@@ -4,18 +4,21 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <wchar.h>
+#include <wctype.h>
 
 #include "client.h"
 #include "helpers.h"
+#include "../shared/helpers.h"
 
 unsigned int ommit_next_autoprompt = 0;
 
 void print_prompt() {
 	// print user prompt
 	if(session.state.current == GAMESTATE_INGAME && session.state.game_name) {
-		output("[%s][%s]$ ", session.login, session.state.game_name);
+		output(L"[%s][%s]$ ", session.login, session.state.game_name);
 	} else {
-		output("[%s]$ ", session.login);
+		output(L"[%s]$ ", session.login);
 	}
 }
 
@@ -71,12 +74,12 @@ char * tokget(tokenized_string_t str, int arg) {
 	return NULL; 
 }
 
-int output(const char *template, ...) {
+int output(const wchar_t *template, ...) {
 	va_list ap;
 	int val;
 	
 	va_start(ap, template);
-    val = vfprintf(stdout, template, ap);
+    val = vfwprintf(stdout, template, ap);
     va_end(ap);
 	
 	fflush(stdout);
@@ -84,68 +87,73 @@ int output(const char *template, ...) {
 }
 
 // Internal helper
-char figure_to_char(uint8_t figure_type) {
-	switch(figure_type) {
-	  case FIGURE_KING:
-		return 'K';
-	  case FIGURE_QUEEN:
-		return 'Q';
-	  case FIGURE_ROOK:
-		return 'R';
-	  case FIGURE_KNIGHT:
-		return 'N';
-	  case FIGURE_BISHOP:
-		return 'B';
-	  case FIGURE_PAWN:
-		return 'P';
+void print_figure(uint8_t type, uint8_t color) {
+	switch(color) {
+		case FIGURE_COLOR_WHITE:
+			wprintf(L"\033[37;1m");
+			break;
+		case FIGURE_COLOR_BLACK:
+			wprintf(L"\033[30;1m");					
+			break;
 	}
-	return ' ';
+	
+	switch(type) {
+	  case FIGURE_KING:
+		wprintf(L"K");
+		break;
+	  case FIGURE_QUEEN:
+		wprintf(L"Q");
+		break;
+	  case FIGURE_ROOK:
+		wprintf(L"R");
+		break;
+	  case FIGURE_KNIGHT:
+		wprintf(L"N");
+		break;
+	  case FIGURE_BISHOP:
+		wprintf(L"B");
+		break;
+	  case FIGURE_PAWN:
+		wprintf(L"P");
+		break;
+	  default:
+		wprintf(L" ");
+		break;		
+	}
+	
+	wprintf(L"\033[0m");
+	fflush(stdout);
 }
 
 void print_desk(desk_t desk) {	
 	int i, j;
 	int cycle = 1;
 	
-	printf("\n");
+	wprintf(L"\n");
 	
 	for(i = 0; i < 8; i++) {
 		cycle = !cycle;
 		//printf("%d |", (7 - i) + 1);
-		printf("%d ", (7 - i) + 1);
+		wprintf(L"%d ", (7 - i) + 1);
 		
 		for(j = 0; j < 8; j++) {
 			cycle = !cycle;
-			cycle ? printf("\033[47m") : printf("\033[40m");
-			printf(" ");
+			cycle ? wprintf(L"\033[47m") : wprintf(L"\033[40m");
+			wprintf(L" ");
 			
 			cell_t * cell = &desk.cells[(7 - i)*8 + j];
+			print_figure(cell->type, cell->color);
 			
-			switch(cell->color) {
-				case FIGURE_COLOR_WHITE:
-					printf("\033[37;1m");
-					break;
-				case FIGURE_COLOR_BLACK:
-					printf("\033[30;1m");					
-					break;
-			}
-			
-			printf("%c", figure_to_char(cell->type));
-			
-			printf("\033[0m");
+			wprintf(L"\033[0m");
 		}
 		
-		printf("\n");
+		wprintf(L"\n");
 	}
 	
-	//printf("--|");
+	wprintf(L"  ");
+	for(i = 0; i < 8; i++) wprintf(L" %c", num_to_char(i + 1));
 	
-	//for(i = 0; i < 8; i++) printf("--");
-	//printf("\n");
-	//printf("  |");
-	printf("  ");
-	for(i = 0; i < 8; i++) printf(" %c", num_to_char(i + 1));
-	
-	printf("\n");
+	wprintf(L"\n");
 	
 	print_prompt();
 }
