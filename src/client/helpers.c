@@ -110,21 +110,22 @@ void print_desk(desk_t desk) {
 	
 	for(i = 0; i < 8; i++) {
 		cycle = !cycle;
-		printf("%d |", (7 - i) + 1);
+		//printf("%d |", (7 - i) + 1);
+		printf("%d ", (7 - i) + 1);
 		
 		for(j = 0; j < 8; j++) {
 			cycle = !cycle;
-			cycle ? printf("\033[43m") : printf("\033[40m");
+			cycle ? printf("\033[47m") : printf("\033[40m");
 			printf(" ");
 			
-			cell_t * cell = &desk.cells[i*8 + (7 - j)];
+			cell_t * cell = &desk.cells[(7 - i)*8 + j];
 			
 			switch(cell->color) {
 				case FIGURE_COLOR_WHITE:
-					printf("\033[32;1m");
+					printf("\033[37;1m");
 					break;
 				case FIGURE_COLOR_BLACK:
-					printf("\033[37;1m");					
+					printf("\033[30;1m");					
 					break;
 			}
 			
@@ -136,11 +137,12 @@ void print_desk(desk_t desk) {
 		printf("\n");
 	}
 	
-	printf("--|");
+	//printf("--|");
 	
-	for(i = 0; i < 8; i++) printf("--");
-	printf("\n");
-	printf("  |");
+	//for(i = 0; i < 8; i++) printf("--");
+	//printf("\n");
+	//printf("  |");
+	printf("  ");
 	for(i = 0; i < 8; i++) printf(" %c", num_to_char(i + 1));
 	
 	printf("\n");
