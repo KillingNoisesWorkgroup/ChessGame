@@ -106,6 +106,8 @@ void print_desk(desk_t desk) {
 	int i, j;
 	int cycle = 1;
 	
+	printf("\n");
+	
 	for(i = 0; i < 8; i++) {
 		cycle = !cycle;
 		printf("%d |", (7 - i) + 1);
@@ -115,7 +117,7 @@ void print_desk(desk_t desk) {
 			cycle ? printf("\033[43m") : printf("\033[40m");
 			printf(" ");
 			
-			cell_t * cell = &desk.cells[(7 - i)*8 + j];
+			cell_t * cell = &desk.cells[i*8 + (7 - j)];
 			
 			switch(cell->color) {
 				case FIGURE_COLOR_WHITE:
