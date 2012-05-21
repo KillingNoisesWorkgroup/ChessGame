@@ -57,6 +57,10 @@ void read_games_dump(FILE *games){
 			login_entry_find_id(spect_id, &spectator);
 			dynamic_array_add(g->spectators, spectator);
 		}
+		for(j = 0; j < 64; j++){
+			fread(&(g->desk.cells[j].type), sizeof(g->desk.cells[j].type), 1, games);
+			fread(&(g->desk.cells[j].color), sizeof(g->desk.cells[j].color), 1, games);
+		}
 		dynamic_array_add(current_lobby.games, g);
 	}
 }
@@ -120,6 +124,10 @@ void create_games_dump(FILE *games){
 		for(j = 0; j < spect_size; j++)
 			fwrite(&((login_entry*)(g->spectators->data[j]))->id,
 			  sizeof(((login_entry*)(g->spectators->data[j]))->id), 1, games);
+		for(j = 0; j < 64; j++){
+			fwrite(&(g->desk.cells[j].type), sizeof(g->desk.cells[j].type), 1, games);
+			fwrite(&(g->desk.cells[j].color), sizeof(g->desk.cells[j].color), 1, games);
+		}
 	}
 }
 

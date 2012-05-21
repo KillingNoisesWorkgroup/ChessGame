@@ -45,7 +45,10 @@ void send_game_attach(int dst, uint32_t gameid, uint8_t team){
 	game_description *g;
 	packet.gameid = htonl(gameid);
 	packet.attached_as_team = team;
-	game_description_find(gameid, &g);
+	if(game_description_find(gameid, &g) == -1){
+		packet_send(dst, PACKET_GAME_ATTACH, sizeof(packet), &packet);
+		return;
+	}
 	strcpy(packet.game_name, g->name);
 	packet_send(dst, PACKET_GAME_ATTACH, sizeof(packet), &packet);
 }
@@ -224,7 +227,6 @@ void detach_from_game(session *s){
 	print_log(s->thread_info, "Detached from game %s(%d)", s->game->name, s->game->id);
 	s->game = NULL;
 	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
-	send_game_detach(s->client_socket);
 }
 
 void* Session(void *arg){
@@ -246,6 +248,7 @@ void* Session(void *arg){
 	while(1){
 		if( !packet_recv(current_session->client_socket, &packet_type, &length, &data)){
 			print_log(current_session->thread_info, "Client disconnected");
+			detach_from_game(current_session);
 			destroy_session(current_session);
 		}
 		//packet_debug_full(packet_type, length, data);
@@ -285,6 +288,7 @@ void* Session(void *arg){
 		case PACKET_GAME_DETACH_REQUEST:
 			print_log(current_session->thread_info, "Got game detach request");
 			detach_from_game(current_session);
+			send_game_detach(current_session->client_socket);
 			break;
 		default:
 			print_log(current_session->thread_info, "Got unknown packet(%d)", packet_type);
