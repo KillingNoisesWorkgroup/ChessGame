@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-c
-LDFLAGS=-lpthread
+LDFLAGS=-lpthread -D_REENTRABLE
 SOURCES=session.c memory_dump.c shutdown_server.c login_entry.c game_description.c \
 		logging.c dynamic_array.c game_log.c lobby.c main.c
 OBJECTS=$(SOURCES:.c=.o)
