@@ -134,22 +134,22 @@ void print_figure(uint8_t type, uint8_t color) {
 	
 	switch(type) {
 	  case FIGURE_KING:
-		wprintf(L"%lc", (color == FIGURE_COLOR_WHITE) ? 0x2654 : 0x265B);
+		wprintf(L"%lc", 0x265B);
 		break;
 	  case FIGURE_QUEEN:
-		wprintf(L"%lc", (color == FIGURE_COLOR_WHITE) ? 0x2655 : 0x265A);
+		wprintf(L"%lc", 0x265A);
 		break;
 	  case FIGURE_ROOK:
-		wprintf(L"%lc", (color == FIGURE_COLOR_WHITE) ? 0x2656 : 0x265C);
+		wprintf(L"%lc", 0x265C);
 		break;
 	  case FIGURE_KNIGHT:
-		wprintf(L"%lc", (color == FIGURE_COLOR_WHITE) ? 0x2658 : 0x265D);
+		wprintf(L"%lc", 0x265D);
 		break;
 	  case FIGURE_BISHOP:
-		wprintf(L"%lc", (color == FIGURE_COLOR_WHITE) ? 0x2657 : 0x265E);
+		wprintf(L"%lc", 0x265E);
 		break;
 	  case FIGURE_PAWN:
-		wprintf(L"%lc", (color == FIGURE_COLOR_WHITE) ? 0x2659 : 0x265F);
+		wprintf(L"%lc", 0x265F);
 		break;
 	  default:
 		wprintf(L" ");
