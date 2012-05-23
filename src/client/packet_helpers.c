@@ -85,3 +85,9 @@ int send_kick_from_game_request(int dst, uint32_t gameid, uint32_t userid) {
 	packet.userid = htonl(userid);
 	return packet_send(dst, PACKET_KICK_FROM_GAME_REQUEST, sizeof packet, &packet);
 }
+
+int send_user_delete_request(int dst, uint32_t userid) {
+	packet_user_delete_request packet;
+	packet.userid = htonl(userid);
+	return packet_send(dst, PACKET_USER_DELETE_REQUEST, sizeof packet, &packet);
+}

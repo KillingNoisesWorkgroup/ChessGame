@@ -120,6 +120,7 @@ void cb_local_ingame(char *buff, int len) {
 		
 		output(L"Commands list:\n");
 		output(L"  I from to  - move figure from <from> position to <to>\n");
+		output(L"  msg text   - send a chat message\n");
 		output(L"  detach     - quit current game session\n");
 		output(L"  help       - this message\n");
 		output(L"  exit       - exit the app\n");
@@ -146,7 +147,14 @@ void cb_local_ingame(char *buff, int len) {
 			}
 		}
 		
-	}command("detach") {
+	} command("msg") {
+		
+		if(tokget(cmd, 1))
+			send_chat_message_outgoing(session.socket, tokget(cmd, 1));
+		else
+			send_chat_message_outgoing(session.socket, "");
+		
+	} command("detach") {
 		
 		output(L"Detaching a game...\n");
 		send_game_detach_request(session.socket);
@@ -171,17 +179,55 @@ void cb_local_default(char *buff, int len) {
 	on command("help") {
 		
 		output(L"Commands list:\n");
-		output(L"  ls               - get games list\n");
-		output(L"  g_attach gameid  - attach to a game\n");
-		output(L"  g_new [name]     - start a new game\n");
-		output(L"  help             - this message\n");
-		output(L"  shutdown         - shutdown the server (admin only)\n");
-		output(L"  exit             - exit the app\n");
+		output(L"  g_online                - get online games list\n");
+		output(L"  g_attach gameid [team]  - attach to a game\n");
+		output(L"  g_new [name]            - start a new game\n");
+		output(L"  g_rand                  - join a random game\n");
+		output(L"  g_all                   - get a history of games\n");
+		output(L"  g_log gameid            - get game log\n");
+		output(L"  g_del gameid            - delete a game (admin only)\n");
+		output(L"  p_online                - get online players list\n");
+		output(L"  p_list                  - get all players list\n");
+		output(L"  p_rating [userid]       - get player(s) rating\n");
+		output(L"  kick userid gameid      - kick player from game (admin only)\n");
+		output(L"  p_del userid            - delete user (admin only)\n");
+		output(L"  shutdown                - shutdown the server (admin only)\n");
+		output(L"  help                    - this message\n");
+		output(L"  exit                    - exit the app\n");
 	
-	} command("ls") {
+	} command("p_online") {
 		
-		output(L"Getting games list...\n");
+		output(L"Getting online players list...\n");
+		send_users_list_request(session.socket, 1);
+		ommit_next_autoprompt++;
+		
+	} command("p_list") {
+		
+		output(L"Getting all players list...\n");
+		send_users_list_request(session.socket, 0);
+		ommit_next_autoprompt++;
+		
+	} command("p_rating") {
+		
+		uint32_t userid = 0;
+		if(tokget(cmd, 1)) userid = atoi(tokget(cmd, 1));
+		if(userid)
+		  output(L"Getting player #%d rating...\n", userid);
+		else
+		  output(L"Getting players rating...\n");		
+		send_user_rating_request(session.socket, userid);
+		ommit_next_autoprompt++;
+		
+	} command("g_online") {
+		
+		output(L"Getting online games list...\n");
 		send_games_list_request(session.socket);
+		ommit_next_autoprompt++;
+		
+	} command("g_all") {
+		
+		output(L"Getting games history...\n");
+		send_games_history_request(session.socket);
 		ommit_next_autoprompt++;
 		
 	} command("g_attach") {
@@ -189,8 +235,20 @@ void cb_local_default(char *buff, int len) {
 		if(!tokget(cmd, 1)) {			
 			output(L"Pass gameid as an argument!\n");
 		} else {
+			uint8_t team = TEAM_AUTO;
+			if(tokget(cmd, 2)) {
+				switch(tokget(cmd, 2)[0]) {
+					case 'w':
+					case 'W': team = TEAM_WHITE; break;
+					case 'b': 
+					case 'B': team = TEAM_BLACK; break;
+					case 's': 
+					case 'S': team = TEAM_SPECTATORS; break;
+				}
+			}			
+			
 			output(L"Attaching to game...\n");
-			send_game_attach_request(session.socket, atoi(tokget(cmd, 1)), TEAM_AUTO);
+			send_game_attach_request(session.socket, atoi(tokget(cmd, 1)), team);
 			ommit_next_autoprompt++;
 		}
 		
@@ -200,6 +258,52 @@ void cb_local_default(char *buff, int len) {
 		reactor.callback_remote = &cb_remote_new_game_autoconnect;
 		send_game_creation_request(session.socket, tokget(cmd, 1) ? tokget(cmd, 1) : session.login);
 		ommit_next_autoprompt++;
+		
+	} command("g_rand") {
+		
+		output(L"Entering matchmaking queue, you will be autoattached when ready...\n");
+		send_matchmaking_queue_request(session.socket);
+		ommit_next_autoprompt++;
+		
+	} command("g_log") {
+		
+		if(!tokget(cmd, 1)) {			
+			output(L"Pass gameid as an argument!\n");
+		} else {
+			output(L"Requesing game log...\n");
+			send_game_log_request(session.socket, atoi(tokget(cmd, 1)));
+			ommit_next_autoprompt++;
+		}
+		
+	} command("g_del") {
+		
+		if(!tokget(cmd, 1)) {			
+			output(L"Pass gameid as an argument!\n");
+		} else {
+			output(L"Deleting game...\n");
+			send_game_delete_request(session.socket, atoi(tokget(cmd, 1)));
+			ommit_next_autoprompt++;
+		}
+		
+	} command("p_del") {
+		
+		if(!tokget(cmd, 1)) {			
+			output(L"Pass userid as an argument!\n");
+		} else {
+			output(L"Deleting user...\n");
+			send_user_delete_request(session.socket, atoi(tokget(cmd, 1)));
+			ommit_next_autoprompt++;
+		}
+		
+	} command("kick") {
+		
+		if(!tokget(cmd, 2)) {			
+			output(L"Pass userid and gameid as an argument!\n");
+		} else {
+			output(L"Kicking...\n");
+			send_kick_from_game_request(session.socket, atoi(tokget(cmd, 2)), atoi(tokget(cmd, 1)));
+			ommit_next_autoprompt++;
+		}
 		
 	} command("shutdown") {
 	

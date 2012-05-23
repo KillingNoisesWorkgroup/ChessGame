@@ -2,7 +2,7 @@
 // Do NOT include this file manually! Include networking.h instead!
 
 #define MAX_PACKET_STRING_LENGTH 256
-#define MAX_CHAT_MESSAGE_LENGTH 128
+#define MAX_CHAT_MESSAGE_LENGTH 128 + 1
 
 /* Dynamic length packet types */
 
@@ -183,3 +183,11 @@ typedef struct packet_matchmaking_queue_request{
 typedef struct packet_chat_message_outgoing{
 	char text[MAX_CHAT_MESSAGE_LENGTH];
 } packet_chat_message_outgoing;
+
+
+/* PACKET C2S - User delete request (admin only) */
+
+#define PACKET_USER_DELETE_REQUEST 21
+typedef struct packet_user_delete_request{
+	uint32_t userid;
+} packet_user_delete_request;

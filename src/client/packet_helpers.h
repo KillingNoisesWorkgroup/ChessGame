@@ -15,5 +15,6 @@ int send_users_list_request(int dst, uint8_t online_only);
 int send_game_log_request(int dst, uint32_t gameid);
 int send_user_rating_request(int dst, uint32_t userid);
 int send_kick_from_game_request(int dst, uint32_t gameid, uint32_t userid);
+int send_user_delete_request(int dst, uint32_t userid);
 
 #endif
