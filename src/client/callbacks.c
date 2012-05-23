@@ -71,6 +71,7 @@ void cb_remote_default(int ptype, int plen, void *payload) {
 		session.state.current = GAMESTATE_INGAME;
 		snprintf(session.state.game_name, sizeof session.state.game_name, "%s", p->game_name);
 		session.state.team = p->attached_as_team;
+		session.state.desk_inverted = session.state.team == TEAM_BLACK;
 		
 		output(L"Attached to game %d!\n", gameid);
 		print_prompt();

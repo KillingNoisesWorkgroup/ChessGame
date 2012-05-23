@@ -10,12 +10,22 @@
 #include "helpers.h"
 #include "../shared/helpers.h"
 
+#define LETTERS
+
 unsigned int ommit_next_autoprompt = 0;
 
 void print_prompt() {
 	// print user prompt
 	if(session.state.current == GAMESTATE_INGAME && session.state.game_name) {
-		output(L"[%s][%s]$ ", session.login, session.state.game_name);
+		char team;
+		switch(session.state.team) {
+			case TEAM_WHITE:      team = 'W'; break;
+			case TEAM_BLACK:      team = 'B'; break;
+			case TEAM_SPECTATORS: team = 'S'; break;
+			default:              team = '?'; break;
+		}
+		
+		output(L"[%s][%s][%c]$ ", session.login, session.state.game_name, team);
 	} else {
 		output(L"[%s]$ ", session.login);
 	}
@@ -170,14 +180,14 @@ void print_desk(desk_t desk) {
 	for(i = 0; i < 8; i++) {
 		cycle = !cycle;
 		//printf("%d |", (7 - i) + 1);
-		wprintf(L" %d ", (7 - i) + 1);
+		wprintf(L" %d ", (!session.state.desk_inverted ? 7-i : i) + 1);
 		
 		for(j = 0; j < 8; j++) {
 			cycle = !cycle;
 			cycle ? wprintf(L"\033[47m") : wprintf(L"\033[40m");
 			wprintf(L" ");
 			
-			cell_t * cell = &desk.cells[(7 - i)*8 + j];
+			cell_t * cell = !session.state.desk_inverted ? &desk.cells[(7 - i)*8 + j] : &desk.cells[i*8 + (7 - j)];
 			print_figure(cell->type, cell->color);
 			
 			wprintf(L"\033[0m");
@@ -187,7 +197,7 @@ void print_desk(desk_t desk) {
 	}
 	
 	wprintf(L"   ");
-	for(i = 0; i < 8; i++) wprintf(L" %c", num_to_char(i + 1));
+	for(i = 0; i < 8; i++) wprintf(L" %c", num_to_char((!session.state.desk_inverted ? i : 7-i) + 1));
 	
 	wprintf(L"\n");
 	
