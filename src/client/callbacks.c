@@ -270,7 +270,7 @@ void cb_local_default(char *buff, int len) {
 		if(!tokget(cmd, 1)) {			
 			output(L"Pass gameid as an argument!\n");
 		} else {
-			output(L"Requesing game log...\n");
+			output(L"Requesting game log...\n");
 			send_game_log_request(session.socket, atoi(tokget(cmd, 1)));
 			ommit_next_autoprompt++;
 		}
