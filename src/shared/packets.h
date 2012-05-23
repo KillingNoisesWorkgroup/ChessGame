@@ -2,6 +2,7 @@
 // Do NOT include this file manually! Include networking.h instead!
 
 #define MAX_PACKET_STRING_LENGTH 256
+#define MAX_CHAT_MESSAGE_LENGTH 128
 
 /* Dynamic length packet types */
 
@@ -108,7 +109,7 @@ typedef struct packet_game_desk{
 } packet_game_desk;
 
 
-/* PACKET S2C - Figure move */
+/* PACKET C2S - Figure move */
 
 #define PACKET_FIGURE_MOVE 12
 typedef struct packet_figure_move{
@@ -117,3 +118,68 @@ typedef struct packet_figure_move{
 	uint8_t to_number;
 	uint8_t to_letter;	
 } packet_figure_move;
+
+
+/* PACKET C2S - Game delete request (admin only) */
+
+#define PACKET_GAME_DELETE_REQUEST 13
+typedef struct packet_game_delete_request{
+	uint32_t gameid;
+} packet_game_delete_request;
+
+
+/* PACKET C2S - Users list request */
+
+#define PACKET_USERS_LIST_REQUEST 14
+typedef struct packet_users_list_request{
+	uint8_t online_only;
+} packet_users_list_request;
+
+
+/* PACKET C2S - Games history request */
+
+#define PACKET_GAMES_HISTORY_REQUEST 15
+typedef struct packet_games_history_request{
+	// empty
+} packet_games_history_request;
+
+
+/* PACKET C2S - Game log request */
+
+#define PACKET_GAME_LOG_REQUEST 16
+typedef struct packet_game_log_request{
+	uint32_t gameid;
+} packet_game_log_request;
+
+
+/* PACKET C2S - User rating request */
+
+#define PACKET_USER_RATING_REQUEST 17
+typedef struct packet_user_rating_request{
+	uint32_t userid;
+} packet_user_rating_request;
+
+
+/* PACKET C2S - Kick from game request (admin only) */
+
+#define PACKET_KICK_FROM_GAME_REQUEST 18
+typedef struct packet_kick_from_game_request{
+	uint32_t gameid;
+	uint32_t userid;
+} packet_kick_from_game_request;
+
+
+/* PACKET C2S - Matchmaking queue request */
+
+#define PACKET_MATCHMAKING_QUEUE_REQUEST 19
+typedef struct packet_matchmaking_queue_request{
+	// empty
+} packet_matchmaking_queue_request;
+
+
+/* PACKET C2S - Chat message outgoing */
+
+#define PACKET_CHAT_MESSAGE_OUTGOING 20
+typedef struct packet_chat_message_outgoing{
+	char text[MAX_CHAT_MESSAGE_LENGTH];
+} packet_chat_message_outgoing;
