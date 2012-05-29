@@ -46,9 +46,16 @@ int game_description_find(uint32_t id, game_description** g){
 	else return -1;
 }
 
-void place_fig(desk_t *desk, int type, int color, int i, int j){
+void place_fig(desk_t *desk, uint8_t type, uint8_t color, uint8_t i, uint8_t j){
 	desk->cells[i + j*8].type = type;
 	desk->cells[i + j*8].color = color;
+}
+
+void move_fig(desk_t *desk, uint8_t from_letter, uint8_t from_number, uint8_t to_letter, uint8_t to_number){
+	cell_t fig;
+	fig = desk->cells[from_letter + from_number*8];
+	place_fig(desk, fig.type, fig.color, to_letter, to_number);
+	place_fig(desk, FIGURE_NONE, FIGURE_COLOR_NONE, from_letter, from_number);
 }
 
 void init_desk(game_description *g){

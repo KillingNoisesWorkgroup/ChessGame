@@ -229,6 +229,11 @@ void detach_from_game(session *s){
 	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 }
 
+void figure_movement(session *s, packet_figure_move *packet){
+	move_fig(&s->game->desk, packet->from_letter, packet->from_number, packet->to_letter, packet->to_number);
+	send_game_desk(s->client_socket, s->game);
+}
+
 void* Session(void *arg){
 	packet_type_t packet_type;
 	packet_length_t length;
@@ -289,6 +294,10 @@ void* Session(void *arg){
 			print_log(current_session->thread_info, "Got game detach request");
 			detach_from_game(current_session);
 			send_game_detach(current_session->client_socket);
+			break;
+		case PACKET_FIGURE_MOVE:
+			print_log(current_session->thread_info, "Got movement packet");
+			figure_movement(current_session, data);
 			break;
 		default:
 			print_log(current_session->thread_info, "Got unknown packet(%d)", packet_type);
