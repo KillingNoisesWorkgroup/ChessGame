@@ -190,7 +190,6 @@ int authentication(session *s, packet_auth_request *packet){
 			pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 		} else {
 			print_log(s->thread_info, "Authentication of user %s(%d) failed", login->login, login->id);
-			free(hex);
 			b = 0;
 		}
 	}
