@@ -119,7 +119,7 @@ int authentication(session *s, packet_auth_request *packet){
 		login = reg_new_user(packet, last_login_id++, hex);
 		
 		pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
-		s->state = SESSION_STATE_WORK;
+		s->state = SESSION_STATE_LOBBY;
 		s->player = login;
 		pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 		print_log(s->thread_info, "User %s(%d) was registrated", login->login, login->id);
@@ -128,7 +128,7 @@ int authentication(session *s, packet_auth_request *packet){
 			print_log(s->thread_info, "User %s(%d) successfully authenticated", login->login, login->id);
 			
 			pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
-			s->state = SESSION_STATE_WORK;
+			s->state = SESSION_STATE_LOBBY;
 			s->player = login;
 			pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 		} else {
@@ -165,7 +165,6 @@ int create_game(session* s, packet_game_creation_request *packet){
 
 void attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 	game_description* g;
-	int b = 1;
 	pthread_mutex_lock(&current_lobby.games->locking_mutex);
 	
 	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
@@ -176,7 +175,6 @@ void attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 		return;
 	}
 	s->game = g;
-	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 	
 	pthread_mutex_lock(&current_lobby.logins->locking_mutex);
 	
@@ -185,29 +183,35 @@ void attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 		if(g->white == NULL){
 			g->white = s->player;
 			*team = TEAM_WHITE;
+			s->state = SESSION_STATE_PLAYING_WHITE;
 			break;
 		}
 		if(g->black == NULL){
 			g->black = s->player;
 			*team = TEAM_BLACK;
+			s->state = SESSION_STATE_PLAYING_BLACK;
 		}
 		else{
 			pthread_mutex_lock(&g->spectators->locking_mutex);
 			dynamic_array_add(g->spectators, (void*)s->player);
 			pthread_mutex_unlock(&g->spectators->locking_mutex);
 			*team = TEAM_SPECTATORS;
+			s->state = SESSION_STATE_WATCHING_GAME;
 		}
 		break;
 	case TEAM_WHITE:
 		g->white = s->player;
+		s->state = SESSION_STATE_PLAYING_WHITE;
 		break;
 	case TEAM_BLACK:
 		g->black = s->player;
+		s->state = SESSION_STATE_PLAYING_BLACK;
 		break;
 	case TEAM_SPECTATORS:
 		pthread_mutex_lock(&g->spectators->locking_mutex);
 		dynamic_array_add(g->spectators, (void*)s->player);
 		pthread_mutex_unlock(&g->spectators->locking_mutex);
+		s->state = SESSION_STATE_WATCHING_GAME;
 		break;
 	}
 	
@@ -216,6 +220,7 @@ void attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 	send_game_desk(s->client_socket, g);
 	pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
 	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
+	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 }
 
 void detach_from_game(session *s){
@@ -224,6 +229,15 @@ void detach_from_game(session *s){
 		pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 		return;
 	}
+	switch(s->state){
+	case SESSION_STATE_PLAYING_WHITE:
+		s->game->white = NULL;
+		break;
+	case SESSION_STATE_PLAYING_BLACK:
+		s->game->black = NULL;
+		break;
+	}
+	s->state = SESSION_STATE_LOBBY;
 	print_log(s->thread_info, "Detached from game %s(%d)", s->game->name, s->game->id);
 	s->game = NULL;
 	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
@@ -268,7 +282,7 @@ void* Session(void *arg){
 			break;
 		case PACKET_SERVER_SHUTDOWN:
 			pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
-			if(current_session->state != SESSION_STATE_WORK || !isadmin(current_session->player)){
+			if(current_session->state != SESSION_STATE_LOBBY || !isadmin(current_session->player)){
 					print_log(current_session->thread_info, "Got server shutdown packet, admin authentication error");
 					pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 					destroy_session(current_session);
