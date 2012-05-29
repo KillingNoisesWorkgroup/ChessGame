@@ -230,7 +230,9 @@ void detach_from_game(session *s){
 }
 
 void figure_movement(session *s, packet_figure_move *packet){
+	pthread_mutex_lock(&current_lobby.games->locking_mutex);
 	move_fig(&s->game->desk, packet->from_letter, packet->from_number, packet->to_letter, packet->to_number);
+	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
 	send_game_desk(s->client_socket, s->game);
 }
 
