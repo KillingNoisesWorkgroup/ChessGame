@@ -84,6 +84,35 @@ void send_games_list_response(int dst){
 	free(games_list);
 }
 
+void send_users_list(int dst, packet_users_list_request *packet){
+	char *users_list;
+	char tmp[PLAYER_NAME_MAXSIZE + 10 + 1 + 1];
+	int i, users_list_size;
+	session *s;
+	
+	pthread_mutex_lock(&current_lobby.logins->locking_mutex);
+	users_list_size = (sizeof tmp)*(current_lobby.logins->size) + 1;
+	if((users_list = malloc(users_list_size)) == NULL){
+		perror("malloc");
+		exit(1);
+	}
+	users_list[0] = '\0';
+	
+	for(i = 0; i < current_lobby.logins->size; i++){
+		if(!(packet->online_only) || (session_find_login((login_entry*)current_lobby.logins->data[i], &s) != -1)){
+			sprintf(tmp, "%10d %-*s\n",
+				((login_entry*)current_lobby.logins->data[i])->id, 64,
+				((login_entry*)current_lobby.logins->data[i])->login);
+			strcat(users_list, tmp);
+		}
+	}
+	users_list[users_list_size-1] = 0;
+	
+	pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
+	packet_send(dst, PACKET_GENERAL_STRING, users_list_size, users_list);
+	free(users_list);
+}
+
 void send_game_desk(int dst, game_description* g){
 	packet_game_desk packet;
 	packet.desk = g->desk;
@@ -91,9 +120,21 @@ void send_game_desk(int dst, game_description* g){
 }
 
 void destroy_session(session* s){
-	//free(s->client_addres);
+	session *tmp;
+	int pos;
+	
+	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
+	pthread_mutex_lock(&current_lobby.logins->locking_mutex);
+	
 	close(s->client_socket);
+	
+	pos = session_find_login(s->player, &tmp);
+	dynamic_array_delete_at(current_lobby.sessions, pos);
 	print_log(s->thread_info, "Session terminated");
+	
+	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
+	pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
+	
 	pthread_exit(NULL);
 }
 
@@ -118,7 +159,7 @@ int session_find_login(login_entry *login, session **s){
 		}
 	}
 	*s = sess;
-	if(b) return 1;
+	if(b) return i;
 	else return -1;
 }
 
@@ -270,14 +311,14 @@ void figure_movement(session *s, packet_figure_move *packet){
 	pthread_mutex_lock(&current_lobby.logins->locking_mutex);
 	pthread_mutex_lock(&s->game->spectators->locking_mutex);
 	
-	if(session_find_login(s->game->white, &target) == 1){
+	if(session_find_login(s->game->white, &target) != -1){
 		send_game_desk(target->client_socket, s->game);
 	}
-	if(session_find_login(s->game->black, &target) == 1){
+	if(session_find_login(s->game->black, &target) != -1){
 		send_game_desk(target->client_socket, s->game);
 	}
 	for(i = 0; i < s->game->spectators->size; i++){
-		if(session_find_login((login_entry*)s->game->spectators->data[i], &target) == 1){
+		if(session_find_login((login_entry*)s->game->spectators->data[i], &target) != -1){
 			send_game_desk(target->client_socket, s->game);
 		}
 	}
@@ -349,8 +390,13 @@ void* Session(void *arg){
 			send_game_detach(current_session->client_socket);
 			break;
 		case PACKET_FIGURE_MOVE:
-			print_log(current_session->thread_info, "Got movement packet");
+			print_log(current_session->thread_info, "Got movement request packet");
 			figure_movement(current_session, data);
+			break;
+		case PACKET_USERS_LIST_REQUEST:
+			print_log(current_session->thread_info, "Got %s users list request",
+				((packet_users_list_request*)data)->online_only ? "online" : "all");
+			send_users_list(current_session->client_socket, data);
 			break;
 		default:
 			print_log(current_session->thread_info, "Got unknown packet(%d)", packet_type);
