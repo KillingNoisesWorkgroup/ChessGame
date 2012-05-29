@@ -38,6 +38,9 @@ void* Session(void *arg);
 // Registers new user
 login_entry* reg_new_user(packet_auth_request* packet, int id, char* hex);
 
+// Searches login entry login in sessions array and places it in *s. Returns 1 on success, 0 on failure, -1 on error
+int session_find_login(login_entry *login, session **s);
+
 // Authenticates user. Returns user id on success, -1 on failure
 int authentication(session *s, packet_auth_request *packet);
 

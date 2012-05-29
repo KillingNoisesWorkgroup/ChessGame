@@ -106,6 +106,22 @@ login_entry* reg_new_user(packet_auth_request* packet, int id, char* hex){
 	return login;
 }
 
+int session_find_login(login_entry *login, session **s){
+	session* sess;
+	int i, b = 0;
+	sess = NULL;
+	for(i = 0; i < current_lobby.sessions->size; i++){
+		if(((session*)(current_lobby.sessions->data[i]))->player->id == login->id){
+			sess = (session*)(current_lobby.sessions->data[i]);
+			b = 1;
+			break;
+		}
+	}
+	*s = sess;
+	if(b) return 1;
+	else return -1;
+}
+
 int authentication(session *s, packet_auth_request *packet){
 	login_entry *login;
 	char *hex;
@@ -193,7 +209,7 @@ void attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 		}
 		else{
 			pthread_mutex_lock(&g->spectators->locking_mutex);
-			dynamic_array_add(g->spectators, (void*)s->player);
+			dynamic_array_add(g->spectators, s->player);
 			pthread_mutex_unlock(&g->spectators->locking_mutex);
 			*team = TEAM_SPECTATORS;
 			s->state = SESSION_STATE_WATCHING_GAME;
@@ -209,7 +225,7 @@ void attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 		break;
 	case TEAM_SPECTATORS:
 		pthread_mutex_lock(&g->spectators->locking_mutex);
-		dynamic_array_add(g->spectators, (void*)s->player);
+		dynamic_array_add(g->spectators, s->player);
 		pthread_mutex_unlock(&g->spectators->locking_mutex);
 		s->state = SESSION_STATE_WATCHING_GAME;
 		break;
@@ -244,10 +260,31 @@ void detach_from_game(session *s){
 }
 
 void figure_movement(session *s, packet_figure_move *packet){
+	int i;
+	session *target;
 	pthread_mutex_lock(&current_lobby.games->locking_mutex);
 	move_fig(&s->game->desk, packet->from_letter, packet->from_number, packet->to_letter, packet->to_number);
 	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
-	send_game_desk(s->client_socket, s->game);
+	
+	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
+	pthread_mutex_lock(&current_lobby.logins->locking_mutex);
+	pthread_mutex_lock(&s->game->spectators->locking_mutex);
+	
+	if(session_find_login(s->game->white, &target) == 1){
+		send_game_desk(target->client_socket, s->game);
+	}
+	if(session_find_login(s->game->black, &target) == 1){
+		send_game_desk(target->client_socket, s->game);
+	}
+	for(i = 0; i < s->game->spectators->size; i++){
+		if(session_find_login((login_entry*)s->game->spectators->data[i], &target) == 1){
+			send_game_desk(target->client_socket, s->game);
+		}
+	}
+	
+	pthread_mutex_unlock(&s->game->spectators->locking_mutex);
+	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
+	pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
 }
 
 void* Session(void *arg){
