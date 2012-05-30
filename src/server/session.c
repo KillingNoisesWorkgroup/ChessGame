@@ -150,6 +150,7 @@ login_entry* reg_new_user(packet_auth_request* packet, int id, char* hex){
 int session_find_login(login_entry *login, session **s){
 	session* sess;
 	int i, b = 0;
+	if(login == NULL) return -1;
 	sess = NULL;
 	for(i = 0; i < current_lobby.sessions->size; i++){
 		if(((session*)(current_lobby.sessions->data[i]))->player->id == login->id){
