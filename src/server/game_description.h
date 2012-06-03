@@ -9,6 +9,8 @@
 #define GAME_NAME_MAXSIZE 64
 
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "login_entry.h"
 #include "../shared/common.h"
@@ -16,7 +18,9 @@
 typedef struct game_description{
 	uint8_t state;
 	uint32_t id;
+	uint16_t moves_made;
 	char* name;
+	FILE * game_log;
 	login_entry* white;
 	login_entry* black;
 	dynamic_array* spectators;

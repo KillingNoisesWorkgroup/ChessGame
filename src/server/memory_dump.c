@@ -7,6 +7,7 @@
 #include "lobby.h"
 #include "login_entry.h"
 #include "game_description.h"
+#include "game_log.h"
 
 void read_logins_dump(FILE *logins){
 	uint32_t count, login_length, passw_length, id;
@@ -40,7 +41,9 @@ void read_games_dump(FILE *games){
 		fread(&name_size, sizeof(name_size), 1, games);
 		fread(g->name, name_size, 1, games);
 		g->name[name_size] = 0;
+		g->game_log = open_game_log(g);
 		fread(&g->state, sizeof(g->state), 1, games);
+		fread(&g->moves_made, sizeof(g->moves_made), 1, games);
 		fread(&white_ex, sizeof(white_ex), 1, games);
 		fread(&black_ex, sizeof(black_ex), 1, games);
 		if(white_ex){
@@ -111,6 +114,7 @@ void create_games_dump(FILE *games){
 		fwrite(&name_length, sizeof(name_length), 1, games);
 		fwrite(g->name, name_length, 1, games);
 		fwrite(&g->state, sizeof(g->state), 1, games);
+		fwrite(&g->moves_made, sizeof(g->moves_made), 1, games);
 		if(g->white == NULL) white_ex = 0;
 		else white_ex = 1;
 		if(g->black == NULL) black_ex = 0;

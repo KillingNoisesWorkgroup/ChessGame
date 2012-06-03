@@ -5,6 +5,7 @@
 #include "lobby.h"
 #include "dynamic_array.h"
 #include "login_entry.h"
+#include "game_log.h"
 
 game_description* init_game_description(int id){
 	game_description* g;
@@ -20,6 +21,8 @@ game_description* init_game_description(int id){
 	g->black = NULL;
 	g->spectators = init_dynamic_array(sizeof(login_entry));
 	g->id = (uint32_t)id;
+	g->moves_made = 1;
+	g->game_log = open_game_log(g);
 	g->state = GAME_STATE_WAITING_FOR_PLAYERS;
 	init_desk(g);
 	return g;

@@ -212,7 +212,7 @@ int create_game(session* s, packet_game_creation_request *packet){
 	game_d = init_game_description(last_game_id++);
 	strcpy(game_d->name, packet->name);
 	dynamic_array_add(current_lobby.games, game_d);
-	
+	fprintf(game_d->game_log, "%s\n", game_d->name);
 	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
 	
 	print_log(s->thread_info, "Game %s(%d) was created", game_d->name, game_d->id);
@@ -305,6 +305,8 @@ void figure_movement(session *s, packet_figure_move *packet){
 	session *target;
 	pthread_mutex_lock(&current_lobby.games->locking_mutex);
 	move_fig(&s->game->desk, packet->from_letter, packet->from_number, packet->to_letter, packet->to_number);
+	s->game->moves_made ++;
+	game_log_move(s->game, packet);
 	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
 	
 	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
