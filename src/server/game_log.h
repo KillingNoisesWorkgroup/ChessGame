@@ -9,7 +9,7 @@
 #include "game_description.h"
 #include "../shared/networking.h"
 
-FILE * open_game_log(game_description * game);
+FILE * open_game_log(uint32_t id);
 void game_log_move(game_description * game, packet_figure_move *move);
 
 #endif

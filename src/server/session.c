@@ -11,6 +11,7 @@
 #include "shutdown_server.h"
 #include "logging.h"
 #include "game_description.h"
+#include "game_log.h"
 
 char* passw_to_hex(unsigned char * passw, int size){
 	char* hex;
@@ -111,6 +112,30 @@ void send_users_list(int dst, packet_users_list_request *packet){
 	pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
 	packet_send(dst, PACKET_GENERAL_STRING, users_list_size, users_list);
 	free(users_list);
+}
+
+void send_games_history(int dst){
+	char msg[128];
+	sprintf(msg, "There was %d games so far. That's all i know...\n", last_game_id-1);
+	packet_send(dst, PACKET_GENERAL_STRING, strlen(msg), msg);
+}
+
+void send_game_log(int dst, uint32_t id){
+	FILE *game_log;
+	game_description *game;
+	char *msg;
+	int size = 0, b = 0;
+	if(game_description_find(id, &game) == -1){
+		game_log = open_game_log(id);
+		b = 1;
+	} else {
+		game_log = game->game_log;
+		rewind(game_log);
+	}
+	size = getdelim(&msg, &size, 0, game_log);
+	packet_send(dst, PACKET_GENERAL_STRING, size, msg);
+	free(msg);
+	if(b) fclose(game_log);
 }
 
 void send_game_desk(int dst, game_description* g){
@@ -399,6 +424,15 @@ void* Session(void *arg){
 			print_log(current_session->thread_info, "Got %s users list request",
 				((packet_users_list_request*)data)->online_only ? "online" : "all");
 			send_users_list(current_session->client_socket, data);
+			break;
+		case PACKET_GAMES_HISTORY_REQUEST:
+			print_log(current_session->thread_info, "Got games history request");
+			send_games_history(current_session->client_socket);
+			break;
+		case PACKET_GAME_LOG_REQUEST:
+			print_log(current_session->thread_info, "Got game %d log request",
+				ntohl((((packet_game_log_request*)data)->gameid)));
+			send_game_log(current_session->client_socket, ntohl(((packet_game_log_request*)data)->gameid));
 			break;
 		default:
 			print_log(current_session->thread_info, "Got unknown packet(%d)", packet_type);

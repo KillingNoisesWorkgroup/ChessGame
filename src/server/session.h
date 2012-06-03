@@ -67,8 +67,14 @@ void send_game_creation_response(int dst, int val);
 // Sends packet_game_attach_response. If attaching to game is failed, gameid should be -1
 void send_game_attach(int dst, uint32_t gameid, uint8_t team);
 
-// Sends string, containing list of all games
+// Sends list of all games
 void send_games_list_response(int dst);
+
+// Sends users list
+void send_users_list(int dst, packet_users_list_request *packet);
+
+// Sends games history
+void send_games_history(int dst);
 
 // Sends packet_game_detach
 void send_game_detach(int dst);

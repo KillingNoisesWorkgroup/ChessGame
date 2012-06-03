@@ -41,7 +41,7 @@ void read_games_dump(FILE *games){
 		fread(&name_size, sizeof(name_size), 1, games);
 		fread(g->name, name_size, 1, games);
 		g->name[name_size] = 0;
-		g->game_log = open_game_log(g);
+		g->game_log = open_game_log(g->id);
 		fread(&g->state, sizeof(g->state), 1, games);
 		fread(&g->moves_made, sizeof(g->moves_made), 1, games);
 		fread(&white_ex, sizeof(white_ex), 1, games);
