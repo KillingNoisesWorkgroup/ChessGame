@@ -29,7 +29,6 @@ void read_logins_dump(FILE *logins){
 
 void read_games_dump(FILE *games){
 	uint32_t count, white_id, black_id;
-	uint8_t white_ex, black_ex;
 	int i, j, name_size, id, spect_id;
 	game_description *g;
 	login_entry *spectator;
@@ -44,15 +43,13 @@ void read_games_dump(FILE *games){
 		g->game_log = open_game_log(g->id);
 		fread(&g->state, sizeof(g->state), 1, games);
 		fread(&g->moves_made, sizeof(g->moves_made), 1, games);
-		fread(&white_ex, sizeof(white_ex), 1, games);
-		fread(&black_ex, sizeof(black_ex), 1, games);
-		if(white_ex){
-			fread(&white_id, sizeof(white_id), 1, games);
-			login_entry_find_id(white_id, &g->white);
+		fread(&white_id, sizeof(white_id), 1, games);
+		fread(&black_id, sizeof(black_id), 1, games);
+		if(white_id){
+			if(login_entry_find_id(white_id, &g->white) == -1) g->white = NULL;
 		}
-		if(black_ex){
-			fread(&black_id, sizeof(black_id), 1, games);
-			login_entry_find_id(black_id, &g->black);
+		if(black_id){
+			if(login_entry_find_id(black_id, &g->black) == -1) g->black = NULL;
 		}
 		fread(&g->spectators->size, sizeof(g->spectators->size), 1, games);
 		for(j = 0; j < g->spectators->size; j++){
@@ -93,15 +90,14 @@ void create_logins_dump(FILE *logins){
 		login_length = strlen(login->login);
 		fwrite(&login_length, sizeof(login_length), 1, logins);
 		fwrite(login->login, login_length, 1, logins);
-		passw_length = strlen(login->passw);
+		passw_length = ENCRYPTED_PASSWORD_LENGTH * 2;
 		fwrite(&passw_length, sizeof(passw_length), 1, logins);
 		fwrite(login->passw, passw_length, 1, logins);
 	}
 }
 
 void create_games_dump(FILE *games){
-	uint32_t count, spect_size;
-	uint8_t white_ex, black_ex;
+	uint32_t count, spect_size, white_id, black_id;
 	int i, j, name_length;
 	game_description *g;
 	count = current_lobby.games->size;
@@ -115,14 +111,12 @@ void create_games_dump(FILE *games){
 		fwrite(g->name, name_length, 1, games);
 		fwrite(&g->state, sizeof(g->state), 1, games);
 		fwrite(&g->moves_made, sizeof(g->moves_made), 1, games);
-		if(g->white == NULL) white_ex = 0;
-		else white_ex = 1;
-		if(g->black == NULL) black_ex = 0;
-		else black_ex = 1;
-		fwrite(&white_ex, sizeof(white_ex), 1, games);
-		fwrite(&black_ex, sizeof(black_ex), 1, games);
-		if(white_ex) fwrite(&g->white->id, sizeof(g->white->id), 1, games);
-		if(black_ex) fwrite(&g->black->id, sizeof(g->black->id), 1, games);
+		if(g->white == NULL) white_id = 0;
+		else white_id = g->white->id;
+		if(g->black == NULL) black_id = 0;
+		else black_id = g->black->id;
+		fwrite(&white_id, sizeof(white_id), 1, games);
+		fwrite(&black_id, sizeof(black_id), 1, games);
 		spect_size =  g->spectators->size;
 		fwrite(&spect_size, sizeof(spect_size), 1, games);
 		for(j = 0; j < spect_size; j++)
