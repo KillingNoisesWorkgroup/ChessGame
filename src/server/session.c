@@ -146,15 +146,14 @@ void send_game_desk(int dst, game_description* g){
 
 void destroy_session(session* s){
 	session *tmp;
-	int pos;
 	
 	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
 	pthread_mutex_lock(&current_lobby.logins->locking_mutex);
 	
 	close(s->client_socket);
 	
-	pos = session_find_login(s->player, &tmp);
-	dynamic_array_delete_at(current_lobby.sessions, pos);
+	dynamic_array_delete_at(current_lobby.sessions, s->id);
+	
 	print_log(s->thread_info, "Session terminated");
 	
 	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
@@ -484,6 +483,7 @@ void create_session(int client_socket, struct sockaddr_in *client_addres){
 	new_session->client_socket = client_socket;
 	new_session->client_addres = client_addres;
 	new_session->game = NULL;
+	new_session->player = NULL;
 	
 	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
 	dynamic_array_add(current_lobby.sessions, new_session);
