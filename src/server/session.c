@@ -251,45 +251,70 @@ void attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 	
 	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
 	if((game_description_find(*gameid, &g) == -1) || (s->game != NULL)){
+		printf("that session is connected to another game!\n");
 		send_game_attach(s->client_socket, 0, 0);
 		pthread_mutex_unlock(&current_lobby.games->locking_mutex);
 		pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 		return;
 	}
-	s->game = g;
 	
 	pthread_mutex_lock(&current_lobby.logins->locking_mutex);
 	
 	switch(*team){
 	case TEAM_AUTO:
-		if(g->white == NULL){
+		if(g->white == s->player){
+			*team = TEAM_WHITE;
+			s->state = SESSION_STATE_PLAYING_WHITE;
+		} else if(g->black == s->player){
+			*team = TEAM_BLACK;
+			s->state = SESSION_STATE_PLAYING_BLACK;
+		} else if(g->white == NULL){
 			g->white = s->player;
 			*team = TEAM_WHITE;
 			s->state = SESSION_STATE_PLAYING_WHITE;
-			break;
-		}
-		if(g->black == NULL){
+		} else if(g->black == NULL){
 			g->black = s->player;
 			*team = TEAM_BLACK;
 			s->state = SESSION_STATE_PLAYING_BLACK;
-		}
-		else{
+		} else {
 			pthread_mutex_lock(&g->spectators->locking_mutex);
 			dynamic_array_add(g->spectators, s->player);
 			pthread_mutex_unlock(&g->spectators->locking_mutex);
 			*team = TEAM_SPECTATORS;
 			s->state = SESSION_STATE_WATCHING_GAME;
 		}
+		s->game = g;
 		break;
 	case TEAM_WHITE:
-		g->white = s->player;
-		s->state = SESSION_STATE_PLAYING_WHITE;
+		if(g->white == NULL || g->white == s->player){
+			g->white = s->player;
+			s->state = SESSION_STATE_PLAYING_WHITE;
+			s->game = g;
+		} else {
+			printf("white slot is occupied\n");
+			send_game_attach(s->client_socket, 0, 0);
+			pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
+			pthread_mutex_unlock(&current_lobby.games->locking_mutex);
+			pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
+			return;
+		}
 		break;
 	case TEAM_BLACK:
-		g->black = s->player;
-		s->state = SESSION_STATE_PLAYING_BLACK;
+		if(g->black == NULL || g->black == s->player){
+			g->black = s->player;
+			s->state = SESSION_STATE_PLAYING_WHITE;
+			s->game = g;
+		} else {
+			printf("black slot is occupied\n");
+			send_game_attach(s->client_socket, 0, 0);
+			pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
+			pthread_mutex_unlock(&current_lobby.games->locking_mutex);
+			pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
+			return;
+		}
 		break;
 	case TEAM_SPECTATORS:
+		s->game = g;
 		pthread_mutex_lock(&g->spectators->locking_mutex);
 		dynamic_array_add(g->spectators, s->player);
 		pthread_mutex_unlock(&g->spectators->locking_mutex);
@@ -310,14 +335,6 @@ void detach_from_game(session *s){
 	if(s->game == NULL){
 		pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 		return;
-	}
-	switch(s->state){
-	case SESSION_STATE_PLAYING_WHITE:
-		s->game->white = NULL;
-		break;
-	case SESSION_STATE_PLAYING_BLACK:
-		s->game->black = NULL;
-		break;
 	}
 	s->state = SESSION_STATE_LOBBY;
 	print_log(s->thread_info, "Detached from game %s(%d)", s->game->name, s->game->id);
