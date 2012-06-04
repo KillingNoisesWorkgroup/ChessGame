@@ -27,8 +27,8 @@ FILE* open_game_log(uint32_t id){
 }
 
 void game_log_move(game_description *game, packet_figure_move *move){
-	if(game->moves_made % 2 == 0){
-		fprintf(game->game_log, "%3d. %c%d:%c%d ", game->moves_made/2,
+	if(white_team_turn(game)){
+		fprintf(game->game_log, "%3d. %c%d:%c%d ", game->moves_made/2 + 1,
 			num_to_char((int)(move->from_letter+1)), move->from_number+1,
 			num_to_char((int)(move->to_letter+1)), move->to_number+1);
 		fflush(game->game_log);

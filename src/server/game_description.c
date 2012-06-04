@@ -21,7 +21,7 @@ game_description* init_game_description(int id){
 	g->black = NULL;
 	g->spectators = init_dynamic_array(sizeof(login_entry));
 	g->id = (uint32_t)id;
-	g->moves_made = 1;
+	g->moves_made = 0;
 	g->game_log = open_game_log(g->id);
 	g->state = GAME_STATE_WAITING_FOR_PLAYERS;
 	init_desk(g);

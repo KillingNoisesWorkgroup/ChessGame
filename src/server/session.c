@@ -325,13 +325,27 @@ void detach_from_game(session *s){
 	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 }
 
+int player_move(session *s){
+	if(((s->state == SESSION_STATE_PLAYING_WHITE) && white_team_turn(s->game)) ||
+		(s->state == SESSION_STATE_PLAYING_BLACK) && black_team_turn(s->game)){
+		return 1;
+	} else return 0;
+}
+
 void figure_movement(session *s, packet_figure_move *packet){
 	int i;
+	char tmp[128];
 	session *target;
 	pthread_mutex_lock(&current_lobby.games->locking_mutex);
+	if(!player_move(s)){
+		sprintf(tmp, "That's not your turn!\n");
+		packet_send(s->client_socket, PACKET_GENERAL_STRING, strlen(tmp), tmp);
+		pthread_mutex_unlock(&current_lobby.games->locking_mutex);
+		return;
+	}
 	move_fig(&s->game->desk, packet->from_letter, packet->from_number, packet->to_letter, packet->to_number);
-	s->game->moves_made ++;
 	game_log_move(s->game, packet);
+	s->game->moves_made ++;
 	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
 	
 	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);

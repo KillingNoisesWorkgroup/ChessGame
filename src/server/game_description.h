@@ -35,5 +35,7 @@ int game_description_find(uint32_t id, game_description** g);
 void place_fig(desk_t *desk, uint8_t type, uint8_t color, uint8_t i, uint8_t j);
 void move_fig(desk_t *desk, uint8_t from_letter, uint8_t from_number, uint8_t to_letter, uint8_t to_number);
 void init_desk(game_description *g);
+#define white_team_turn(game) (game->moves_made % 2 == 0)
+#define black_team_turn(game) (game->moves_made % 2 == 1)
 
 #endif
