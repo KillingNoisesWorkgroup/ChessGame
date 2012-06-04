@@ -144,16 +144,12 @@ void send_game_desk(int dst, game_description* g){
 	packet_send(dst, PACKET_GAME_DESK, sizeof(desk_t), &packet);
 }
 
-void destroy_session(session* s){
-	session *tmp;
-	
+void destroy_session(session* s){	
 	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
 	pthread_mutex_lock(&current_lobby.logins->locking_mutex);
 	
-	close(s->client_socket);
-	
-	dynamic_array_delete_at(current_lobby.sessions, s->id);
-	
+	close(s->client_socket);	
+	dynamic_array_delete_at(current_lobby.sessions, s->id);	
 	print_log(s->thread_info, "Session terminated");
 	
 	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
