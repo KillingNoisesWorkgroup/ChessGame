@@ -10,7 +10,7 @@ FILE* open_game_log(uint32_t id){
 	FILE* gl;
 	char gl_name[256], tmp[11];
 	
-	sprintf(tmp, "%010d", id);
+	sprintf(tmp, "%d.txt", id);
 	tmp[11] = '\0';
 	gl_name[0] = '\0';
 	strcat(gl_name, GAME_LOG_DIR);
