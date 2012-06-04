@@ -1,3 +1,3 @@
 *.exe
-*.dump
 game_logs/
+dumps/

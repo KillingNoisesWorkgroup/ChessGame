@@ -70,11 +70,11 @@ void read_games_dump(FILE *games){
 
 void read_memory_dump(){
 	FILE *logins, *games;
-	if( (logins = fopen("logins.dump", "r")) != NULL){
+	if( (logins = fopen("dumps/logins", "r")) != NULL){
 		read_logins_dump(logins);
 		fclose(logins);
 	}
-	if( (games = fopen("games.dump", "r")) != NULL){
+	if( (games = fopen("dumps/games", "r")) != NULL){
 		read_games_dump(games);
 		fclose(games);
 	}
@@ -137,11 +137,12 @@ void create_games_dump(FILE *games){
 
 void create_memory_dump(){
 	FILE *logins, *games;
-	if( (logins = fopen("logins.dump", "w+")) == NULL){
+	mkdir("dumps");
+	if( (logins = fopen("dumps/logins", "w+")) == NULL){
 		perror("fopen");
 		exit(1);
 	}
-	if( (games = fopen("games.dump", "w+")) == NULL){
+	if( (games = fopen("dumps/games", "w+")) == NULL){
 		perror("fopen");
 		exit(1);
 	}
