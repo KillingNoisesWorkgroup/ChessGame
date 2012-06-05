@@ -1,12 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "login_entry.h"
 #include "lobby.h"
 #include "../shared/networking.h"
 
-login_entry* init_login_entry(int id){
+login_entry* init_login_entry(uint32_t id){
 	login_entry* log_e;
 	if( (log_e = malloc(sizeof(login_entry))) == NULL){
 		perror("malloc");
@@ -21,6 +22,7 @@ login_entry* init_login_entry(int id){
 		exit(1);
 	}
 	log_e->id = id;
+	log_e->rating = 0;
 	return log_e;
 }
 
@@ -50,7 +52,7 @@ int login_entry_find(char* login, login_entry** l){
 	else return -1;
 }
 
-int login_entry_find_id(int id, login_entry** l){
+int login_entry_find_id(uint32_t id, login_entry** l){
 	login_entry* log_e;
 	int i, b = 0;
 	log_e = NULL;

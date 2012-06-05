@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "lobby.h"
 #include "login_entry.h"
@@ -18,6 +20,7 @@ void read_logins_dump(FILE *logins){
 	for(i = 0; i < count; i++){
 		fread(&id, sizeof(id), 1, logins);
 		new_login = init_login_entry(id);
+		fread(&new_login->rating, sizeof(new_login->rating), 1, logins);
 		fread(&login_length, sizeof(login_length), 1, logins);
 		fread(new_login->login, login_length, 1, logins);
 		new_login->login[login_length] = 0;
@@ -87,6 +90,7 @@ void create_logins_dump(FILE *logins){
 	for(i = 0; i < count; i++){
 		login = (login_entry*)(current_lobby.logins->data)[i];
 		fwrite(&login->id, sizeof(login->id), 1, logins);
+		fwrite(&login->rating, sizeof(login->rating), 1, logins);
 		login_length = strlen(login->login);
 		fwrite(&login_length, sizeof(login_length), 1, logins);
 		fwrite(login->login, login_length, 1, logins);
@@ -131,7 +135,7 @@ void create_games_dump(FILE *games){
 
 void create_memory_dump(){
 	FILE *logins, *games;
-	mkdir("dumps");
+	mkdir("dumps", S_IRUSR | S_IWUSR | S_IXUSR);
 	if( (logins = fopen("dumps/logins", "w+")) == NULL){
 		perror("fopen");
 		exit(1);

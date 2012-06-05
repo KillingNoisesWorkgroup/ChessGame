@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "game_log.h"
 #include "../shared/helpers.h"
@@ -16,7 +18,7 @@ FILE* open_game_log(uint32_t id){
 	strcat(gl_name, GAME_LOG_DIR);
 	strcat(gl_name, tmp);
 	
-	mkdir(GAME_LOG_DIR);
+	mkdir(GAME_LOG_DIR, S_IRUSR | S_IWUSR | S_IXUSR);
 	
 	if((gl = fopen(gl_name, "a+")) == NULL){
 		perror("fopen");

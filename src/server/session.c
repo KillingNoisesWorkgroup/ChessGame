@@ -146,15 +146,13 @@ void send_game_desk(int dst, game_description* g){
 
 void destroy_session(session* s){
 	session *tmp;
-	int pos;
 	
 	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
 	pthread_mutex_lock(&current_lobby.logins->locking_mutex);
 	
 	close(s->client_socket);
 	
-	pos = session_find_login(s->player, &tmp);
-	dynamic_array_delete_at(current_lobby.sessions, pos);
+	dynamic_array_delete_at(current_lobby.sessions, s->id);
 	print_log(s->thread_info, "Session terminated");
 	
 	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
@@ -251,7 +249,6 @@ void attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 	
 	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
 	if((game_description_find(*gameid, &g) == -1) || (s->game != NULL)){
-		printf("that session is connected to another game!\n");
 		send_game_attach(s->client_socket, 0, 0);
 		pthread_mutex_unlock(&current_lobby.games->locking_mutex);
 		pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
@@ -291,7 +288,6 @@ void attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 			s->state = SESSION_STATE_PLAYING_WHITE;
 			s->game = g;
 		} else {
-			printf("white slot is occupied\n");
 			send_game_attach(s->client_socket, 0, 0);
 			pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
 			pthread_mutex_unlock(&current_lobby.games->locking_mutex);
@@ -305,7 +301,6 @@ void attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 			s->state = SESSION_STATE_PLAYING_WHITE;
 			s->game = g;
 		} else {
-			printf("black slot is occupied\n");
 			send_game_attach(s->client_socket, 0, 0);
 			pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
 			pthread_mutex_unlock(&current_lobby.games->locking_mutex);
@@ -322,6 +317,8 @@ void attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 		break;
 	}
 	
+	if(g->black && g->white) g->state = GAME_STATE_READY;
+	
 	print_log(s->thread_info, "Attached to game %s(%d)", g->name, g->id);
 	send_game_attach(s->client_socket, *gameid, *team);
 	send_game_desk(s->client_socket, g);
@@ -331,7 +328,6 @@ void attach_to_game(session *s, uint32_t* gameid, uint8_t* team){
 }
 
 void detach_from_game(session *s){
-	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
 	if(s->game == NULL){
 		pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 		return;
@@ -339,7 +335,25 @@ void detach_from_game(session *s){
 	s->state = SESSION_STATE_LOBBY;
 	print_log(s->thread_info, "Detached from game %s(%d)", s->game->name, s->game->id);
 	s->game = NULL;
-	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
+}
+
+void detach_all(game_description *g){
+	session *white, *black, *spectator;
+	int i;
+	if(session_find_login(g->white, &white) != -1){
+		detach_from_game(white);
+		send_game_detach(white->client_socket);
+	}
+	if(session_find_login(g->black, &black) != -1){
+		detach_from_game(black);
+		send_game_detach(black->client_socket);
+	}
+	for(i = 0; i < g->spectators->size; i++){
+		if(session_find_login(((login_entry*)(g->spectators->data[i])), &spectator) != -1){
+			detach_from_game(spectator);
+			send_game_detach(spectator->client_socket);
+		}
+	}
 }
 
 int player_move(session *s){
@@ -349,25 +363,98 @@ int player_move(session *s){
 	} else return 0;
 }
 
-void figure_movement(session *s, packet_figure_move *packet){
+void win(session *s){
 	int i;
+	char tmp[128];
+	session *other;
+	
+	s->player->rating ++;
+	
+	if(s->state == SESSION_STATE_PLAYING_WHITE){
+		snprintf(tmp, sizeof tmp, "You win!\n");
+		packet_send(s->client_socket, PACKET_GENERAL_STRING, strlen(tmp), tmp);
+		if(session_find_login(s->game->black, &other) != -1){
+			snprintf(tmp, sizeof tmp, "You lose!\n");
+			packet_send(other->client_socket, PACKET_GENERAL_STRING, strlen(tmp), tmp);
+		}
+		s->game->black->rating--;
+	} else if(s->state == SESSION_STATE_PLAYING_BLACK){
+		sprintf(tmp, "You win!\n");
+		packet_send(s->client_socket, PACKET_GENERAL_STRING, strlen(tmp), tmp);
+		if(session_find_login(s->game->white, &other) != -1){
+			sprintf(tmp, "You lose!\n");
+			packet_send(other->client_socket, PACKET_GENERAL_STRING, strlen(tmp), tmp);
+		}
+		s->game->black->rating --;
+	}
+	s->game->state = GAME_STATE_OVER;
+	detach_all(s->game);
+}
+
+void surrender(session *s){
+	int i;
+	char tmp[128];
+	session *other;
+	
+	s->player->rating --;
+	if(s->state == SESSION_STATE_PLAYING_WHITE){
+		sprintf(tmp, "You surrendered!\n");
+		packet_send(s->client_socket, PACKET_GENERAL_STRING, strlen(tmp), tmp);
+		if(session_find_login(s->game->black, &other) != -1){
+			sprintf(tmp, "Your opponent surrendered! You win!\n");
+			packet_send(other->client_socket, PACKET_GENERAL_STRING, strlen(tmp), tmp);
+		}
+		s->game->black->rating ++;
+	} else if(s->state == SESSION_STATE_PLAYING_BLACK){
+		sprintf(tmp, "You surrendered!\n");
+		packet_send(s->client_socket, PACKET_GENERAL_STRING, strlen(tmp), tmp);
+		if(session_find_login(s->game->white, &other) != -1){
+			sprintf(tmp, "Your opponent surrendered! You win!\n");
+			packet_send(other->client_socket, PACKET_GENERAL_STRING, strlen(tmp), tmp);
+		}
+		s->game->black->rating ++;
+	}
+	s->game->state = GAME_STATE_OVER;
+	detach_all(s->game);
+}
+
+void figure_movement(session *s, packet_figure_move *packet){
+	int i, dst_fig, dst_col, src_col;
 	char tmp[128];
 	session *target;
 	pthread_mutex_lock(&current_lobby.games->locking_mutex);
+	if(s->game->state != GAME_STATE_READY){
+		sprintf(tmp, "Game is not ready!\n");
+		packet_send(s->client_socket, PACKET_GENERAL_STRING, strlen(tmp), tmp);
+		pthread_mutex_unlock(&current_lobby.games->locking_mutex);
+		return;
+	}
 	if(!player_move(s)){
 		sprintf(tmp, "That's not your turn!\n");
 		packet_send(s->client_socket, PACKET_GENERAL_STRING, strlen(tmp), tmp);
 		pthread_mutex_unlock(&current_lobby.games->locking_mutex);
 		return;
 	}
+	
+	src_col = get_fig_color(&s->game->desk, packet->from_letter, packet->from_number);
+	
+	dst_fig = get_fig_type(&s->game->desk, packet->to_letter, packet->to_number);
+	dst_col = get_fig_color(&s->game->desk, packet->to_letter, packet->to_number);
+	
+	if((s->state == SESSION_STATE_PLAYING_WHITE && src_col != FIGURE_COLOR_WHITE) ||
+		(s->state == SESSION_STATE_PLAYING_BLACK && src_col != FIGURE_COLOR_BLACK)){
+		sprintf(tmp, "That's not your figure!\n");
+		packet_send(s->client_socket, PACKET_GENERAL_STRING, strlen(tmp), tmp);
+		pthread_mutex_unlock(&current_lobby.games->locking_mutex);
+		return;
+	}
+	
 	move_fig(&s->game->desk, packet->from_letter, packet->from_number, packet->to_letter, packet->to_number);
 	game_log_move(s->game, packet);
 	s->game->moves_made ++;
-	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
 	
 	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
 	pthread_mutex_lock(&current_lobby.logins->locking_mutex);
-	pthread_mutex_lock(&s->game->spectators->locking_mutex);
 	
 	if(session_find_login(s->game->white, &target) != -1){
 		send_game_desk(target->client_socket, s->game);
@@ -381,9 +468,24 @@ void figure_movement(session *s, packet_figure_move *packet){
 		}
 	}
 	
-	pthread_mutex_unlock(&s->game->spectators->locking_mutex);
+	if(dst_fig == FIGURE_KING){
+		if(dst_col == FIGURE_COLOR_WHITE){
+			if(s->state == SESSION_STATE_PLAYING_WHITE){
+				surrender(s);
+			} else if(s->state == SESSION_STATE_PLAYING_BLACK){
+				win(s);
+			}
+		} else if(dst_col == FIGURE_COLOR_BLACK){
+			if(s->state == SESSION_STATE_PLAYING_BLACK){
+				surrender(s);
+			} else if(s->state == SESSION_STATE_PLAYING_WHITE){
+				win(s);
+			}
+		}
+	}
 	pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 	pthread_mutex_unlock(&current_lobby.logins->locking_mutex);
+	pthread_mutex_unlock(&current_lobby.games->locking_mutex);
 }
 
 void* Session(void *arg){
@@ -405,7 +507,9 @@ void* Session(void *arg){
 	while(1){
 		if( !packet_recv(current_session->client_socket, &packet_type, &length, &data)){
 			print_log(current_session->thread_info, "Client disconnected");
+			pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
 			detach_from_game(current_session);
+			pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 			destroy_session(current_session);
 		}
 		//packet_debug_full(packet_type, length, data);
@@ -444,7 +548,9 @@ void* Session(void *arg){
 			break;
 		case PACKET_GAME_DETACH_REQUEST:
 			print_log(current_session->thread_info, "Got game detach request");
+			pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
 			detach_from_game(current_session);
+			pthread_mutex_unlock(&current_lobby.sessions->locking_mutex);
 			send_game_detach(current_session->client_socket);
 			break;
 		case PACKET_FIGURE_MOVE:
@@ -484,6 +590,7 @@ void create_session(int client_socket, struct sockaddr_in *client_addres){
 	new_session->client_socket = client_socket;
 	new_session->client_addres = client_addres;
 	new_session->game = NULL;
+	new_session->player = NULL;
 	
 	pthread_mutex_lock(&current_lobby.sessions->locking_mutex);
 	dynamic_array_add(current_lobby.sessions, new_session);
